@@ -6,7 +6,7 @@ COPY package*.json ./
 RUN npm ci --only=production
 
 COPY . .
-EXPOSE 3001
+EXPOSE 4020
 
 USER node
-CMD ["node", "index.js"]
+CMD ["node", "src/index.js"]
