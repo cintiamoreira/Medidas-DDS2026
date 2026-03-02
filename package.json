@@ -1,13 +1,13 @@
 {
-  "name": "meu-app",
+  "name": "backend-api",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon src/index.js",
-    "docker-build": "docker build -t projetobackads .",
-    "docker-run": "docker run -p 4020:4020 --env-file .env projetobackads"
+    "docker-build": "docker build -t backend-api .",
+    "docker-run": "docker run -p 4020:4020 --env-file .env backend-api"
   },
   "keywords": [],
   "author": "",
