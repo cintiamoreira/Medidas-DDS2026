@@ -15,6 +15,8 @@ app.use(
 );
 app.use(express.json());
 
+// ESCUTANDO VIA HTTP
+
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
@@ -22,7 +24,7 @@ app.get('/health', (req, res) => {
 app.use('/api', router);
 
 app.get('/', (req, res) => {
-  res.send('Hello .sssss..ddd..!');
+  res.send('ROTA INICIAL');
 });
 
 app.use('/usuarios', routerUsuarios);
