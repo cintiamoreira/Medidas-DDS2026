@@ -1,7 +1,7 @@
 import express from 'express';
 import 'dotenv/config';
 import cors from 'cors';
-import router from './routes/index.js';
+import './config/firebase.js';
 import routerUsuarios from './routes/usuarios.js';
 
 const app = express();
@@ -15,14 +15,14 @@ app.use(
 );
 app.use(express.json());
 
+// ESCUTANDO VIA HTTP
+
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-app.use('/api', router);
-
 app.get('/', (req, res) => {
-  res.send('Hello .sssss..ddd..!');
+  res.send('ROTA INICIAL');
 });
 
 app.use('/usuarios', routerUsuarios);
