@@ -2,10 +2,13 @@ import BotaoForm from "@/components/BotaoForm";
 import BotaoNavegacao from "../components/BotaoNavegacao";
 import InputForm from "@/components/InputForm";
 import { getHealth } from "@/requests/inicial";
+import { useRouter } from "next/router";
 import { SubmitEvent } from "react";
 import { postLogin, TypeFormLogin } from "@/requests/usuarios";
 
 export default function Login() {
+  const router = useRouter();
+
   const submeterFormulario = (evento: SubmitEvent<HTMLFormElement>) => {
     evento.preventDefault();
     const formData = new FormData(evento.currentTarget);
@@ -13,7 +16,7 @@ export default function Login() {
     postLogin(
       dadosLogin,
       () => {
-        alert("LOGADO COM SUCESSO!");
+        router.push("/medidas");
       },
       () => {
         alert("Erro ao logar!");
