@@ -36,8 +36,8 @@ routerUsuarios.post('/login', async (req, res) => {
           returnSecureToken: true,
         }),
       });
-      if (!resposta.ok) {
-        throw new Error();
+      if (!response.ok) {
+        throw new Error('Resposta não ok');
       }
       const dados = await response.json();
 
@@ -45,7 +45,7 @@ routerUsuarios.post('/login', async (req, res) => {
     } catch (erro) {
       res
         .status(500)
-        .json({ message: 'Houve um problema para realizar o login' });
+        .json({ message: 'Houve um problema para realizar o login', erro });
     }
   }
 });
