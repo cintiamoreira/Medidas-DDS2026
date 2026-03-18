@@ -3,6 +3,7 @@ import { auth } from '../config/firebase.js';
 const routerUsuarios = express.Router();
 
 routerUsuarios.post('/criar-conta', async (req, res) => {
+  console.log('POST /criar-conta');
   if (!req.body.email || !req.body.senha) {
     res.status(400).json({ error: 'Faltando dados para criação de conta' });
   } else {
@@ -19,6 +20,7 @@ routerUsuarios.post('/criar-conta', async (req, res) => {
 });
 
 routerUsuarios.post('/login', async (req, res) => {
+  console.log('POST /login');
   if (!req.body.email || !req.body.senha) {
     console.log('ERRO');
     res.status(400).json({ error: 'Faltando dados para login' });
@@ -34,8 +36,8 @@ routerUsuarios.post('/login', async (req, res) => {
           returnSecureToken: true,
         }),
       });
-      if (!resposta.ok) {
-        throw new Error();
+      if (!response.ok) {
+        throw new Error('Resposta não ok');
       }
       const dados = await response.json();
 
@@ -43,7 +45,7 @@ routerUsuarios.post('/login', async (req, res) => {
     } catch (erro) {
       res
         .status(500)
-        .json({ message: 'Houve um problema para realizar o login' });
+        .json({ message: 'Houve um problema para realizar o login', erro });
     }
   }
 });
