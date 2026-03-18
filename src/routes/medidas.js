@@ -1,0 +1,36 @@
+import express from 'express';
+import { db } from '../config/firebase.js';
+
+const routerMedidas = express.Router();
+
+routerMedidas.get('/ler', async (req, res) => {
+  console.log('GET /ler');
+});
+routerMedidas.get('/ler-todas', async (req, res) => {
+  console.log('GET /ler-todas');
+});
+routerMedidas.post('/criar', async (req, res) => {
+  console.log('POST /criar');
+  if (!db) {
+    return res.status(503).json({ error: 'Firestore não disponível' });
+  }
+  try {
+    const payload = req.body || {};
+    const ref = await db.collection('medidas').add({
+      ...payload,
+      createdAt: new Date(),
+    });
+    res.status(201).json({ id: ref.id, message: 'Medida criada' });
+  } catch (erro) {
+    console.error('Erro ao criar medida:', erro);
+    res.status(500).json({ error: 'Erro ao criar medida' });
+  }
+});
+routerMedidas.put('/atualizar', async (req, res) => {
+  console.log('PUT /atualizar');
+});
+routerMedidas.delete('/remover', async (req, res) => {
+  console.log('DELETE /remover');
+});
+
+export default routerMedidas;

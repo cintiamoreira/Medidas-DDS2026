@@ -3,6 +3,7 @@ import 'dotenv/config';
 import cors from 'cors';
 import './config/firebase.js';
 import routerUsuarios from './routes/usuarios.js';
+import routerMedidas from './routes/medidas.js';
 
 const app = express();
 const PORT = process.env.PORT || 4020;
@@ -23,6 +24,7 @@ app.get('/health', (req, res) => {
 });
 
 app.use('/usuarios', routerUsuarios);
+app.use('/medidas', routerMedidas);
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}`);
