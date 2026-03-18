@@ -3,6 +3,7 @@ import { auth } from '../config/firebase.js';
 const routerUsuarios = express.Router();
 
 routerUsuarios.post('/criar-conta', async (req, res) => {
+  console.log('POST /criar-conta');
   if (!req.body.email || !req.body.senha) {
     res.status(400).json({ error: 'Faltando dados para criação de conta' });
   } else {
@@ -19,6 +20,7 @@ routerUsuarios.post('/criar-conta', async (req, res) => {
 });
 
 routerUsuarios.post('/login', async (req, res) => {
+  console.log('POST /login');
   if (!req.body.email || !req.body.senha) {
     console.log('ERRO');
     res.status(400).json({ error: 'Faltando dados para login' });

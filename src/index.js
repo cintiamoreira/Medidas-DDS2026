@@ -18,11 +18,8 @@ app.use(express.json());
 // ESCUTANDO VIA HTTP
 
 app.get('/health', (req, res) => {
+  console.log('GET /health');
   res.json({ status: 'ok' });
-});
-
-app.get('/', (req, res) => {
-  res.send('ROTA INICIAL');
 });
 
 app.use('/usuarios', routerUsuarios);
