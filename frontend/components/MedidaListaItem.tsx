@@ -1,8 +1,9 @@
 import { TypeMedida } from "@/requests/medidas";
 import React from "react";
 
-type Props = {
+type MedidaListaItemProps = {
   medida: TypeMedida;
+  onClick: (medida: TypeMedida) => void;
 };
 
 function recuperarData(dataFirestore: TypeMedida["createdAt"]): Date | null {
@@ -12,7 +13,7 @@ function recuperarData(dataFirestore: TypeMedida["createdAt"]): Date | null {
   return new Date(_seconds * 1000 + _nanoseconds / 1e6);
 }
 
-const MedidaListaItem = (props: Props) => {
+const MedidaListaItem = (props: MedidaListaItemProps) => {
   const { medida } = props;
   const date = recuperarData(medida.createdAt);
   const dataCriacao = date
@@ -26,7 +27,10 @@ const MedidaListaItem = (props: Props) => {
     : "—";
 
   return (
-    <article className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+    <article
+      onClick={() => props.onClick(medida)}
+      className="cursor-pointer rounded-xl border border-zinc-200 bg-white p-4 shadow-sm transition-shadow duration-200 hover:shadow-md hover:border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:border-zinc-600"
+    >
       <div className="flex flex-col gap-3">
         <p className="text-base font-semibold text-zinc-900 dark:text-white">
           {dataCriacao}

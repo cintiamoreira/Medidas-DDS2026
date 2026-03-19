@@ -50,6 +50,7 @@ export type FirestoreTimestamp = {
 };
 
 export interface TypeMedida {
+  id?: string;
   createdAt?: FirestoreTimestamp;
   idade: number;
   peso: number;

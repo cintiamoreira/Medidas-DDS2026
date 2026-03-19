@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
-import BotaoNavegacao from "../components/BotaoNavegacao";
+import BotaoNavegacao from "../../components/BotaoNavegacao";
 import { getMedidas, TypeMedida } from "@/requests/medidas";
 import MedidaListaItem from "@/components/MedidaListaItem";
+import { useRouter } from "next/router";
 
 export default function Medidas() {
+  const router = useRouter();
   const [medidas, setMedidas] = useState<TypeMedida[]>([]);
   useEffect(() => {
     getMedidas().then((dados) => {
@@ -25,7 +27,13 @@ export default function Medidas() {
         </header>
         <div className="flex flex-col gap-4">
           {medidas.map((medida) => (
-            <MedidaListaItem key={medida.idade} medida={medida} />
+            <MedidaListaItem
+              key={medida.idade}
+              medida={medida}
+              onClick={(medidaClicada) =>
+                router.push(`/medidas/${medidaClicada.id}`)
+              }
+            />
           ))}
         </div>
       </main>

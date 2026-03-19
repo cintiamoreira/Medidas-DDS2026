@@ -13,7 +13,7 @@ routerMedidas.get('/ler-todas', async (req, res) => {
   }
   try {
     const snapshot = await db.collection('medidas').get();
-    const medidas = snapshot.docs.map((doc) => doc.data());
+    const medidas = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
     res.status(200).json(medidas);
   } catch (erro) {
     console.error('Erro ao ler todas as medidas:', erro);
