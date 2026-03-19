@@ -3,7 +3,7 @@ import BotaoForm from "@/components/BotaoForm";
 import InputForm from "@/components/InputForm";
 import { useRouter } from "next/router";
 import { SubmitEvent, useState } from "react";
-import { postMedidaCriar, TypeFormMedida } from "@/requests/medidas";
+import { postMedidaCriar, TypeMedida } from "@/requests/medidas";
 
 export default function Login() {
   const router = useRouter();
@@ -11,9 +11,7 @@ export default function Login() {
   const submeterFormulario = async (evento: SubmitEvent<HTMLFormElement>) => {
     evento.preventDefault();
     const formData = new FormData(evento.currentTarget);
-    const dadosLogin = Object.fromEntries(
-      formData,
-    ) as unknown as TypeFormMedida;
+    const dadosLogin = Object.fromEntries(formData) as unknown as TypeMedida;
 
     setCarregando(true);
     await postMedidaCriar(

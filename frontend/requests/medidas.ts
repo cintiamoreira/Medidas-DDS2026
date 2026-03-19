@@ -6,12 +6,13 @@ export interface TypeFormCriarConta {
 
 const BASE_ROTA = "/medidas";
 
-export const getUsuariosInformacoes = async () => {
+export const getMedidas = async () => {
   const resposta = await fetch(
-    process.env.NEXT_PUBLIC_BACKEND_URL + BASE_ROTA + "/informacoes",
+    process.env.NEXT_PUBLIC_BACKEND_URL + BASE_ROTA + "/ler-todas",
   );
-  const dado = await resposta.json();
+  const dado = (await resposta.json()) as TypeMedida[];
   console.log({ dado });
+  return dado;
 };
 
 export const postCriarConta = async (
@@ -42,7 +43,14 @@ export const postCriarConta = async (
   }
 };
 
-export interface TypeFormMedida {
+/** Formato Firestore Timestamp ao serializar em JSON */
+export type FirestoreTimestamp = {
+  _seconds: number;
+  _nanoseconds: number;
+};
+
+export interface TypeMedida {
+  createdAt?: FirestoreTimestamp;
   idade: number;
   peso: number;
   altura: number;
@@ -57,7 +65,7 @@ export interface TypeFormMedida {
 }
 
 export const postMedidaCriar = async (
-  dados: TypeFormMedida,
+  dados: TypeMedida,
   onSuccess: () => void,
   onError: () => void,
 ) => {

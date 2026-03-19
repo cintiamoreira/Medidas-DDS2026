@@ -8,6 +8,17 @@ routerMedidas.get('/ler', async (req, res) => {
 });
 routerMedidas.get('/ler-todas', async (req, res) => {
   console.log('GET /ler-todas');
+  if (!db) {
+    return res.status(503).json({ error: 'Firestore não disponível' });
+  }
+  try {
+    const snapshot = await db.collection('medidas').get();
+    const medidas = snapshot.docs.map((doc) => doc.data());
+    res.status(200).json(medidas);
+  } catch (erro) {
+    console.error('Erro ao ler todas as medidas:', erro);
+    res.status(500).json({ error: 'Erro ao ler todas as medidas' });
+  }
 });
 routerMedidas.post('/criar', async (req, res) => {
   console.log('POST /criar');
