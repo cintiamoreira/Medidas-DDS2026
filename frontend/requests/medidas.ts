@@ -83,3 +83,22 @@ export const getMedidaPorId = async (id: string) => {
   console.log({ dado });
   return dado;
 };
+
+export const putMedidaAtualizar = async (
+  id: string,
+  dados: TypePostFormMedida,
+) => {
+  const resposta = await fetch(
+    process.env.NEXT_PUBLIC_BACKEND_URL + BASE_ROTA + "/atualizar",
+    {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ id, ...dados }),
+    },
+  );
+  if (!resposta.ok) {
+    throw new Error("Erro ao atualizar medida");
+  }
+  const dado = (await resposta.json()) as { id: string; message: string };
+  return dado;
+};
