@@ -1,12 +1,14 @@
-import { TypeMedida } from "@/requests/medidas";
+import { TypeMedidaLista, TypePostFormMedida } from "@/requests/medidas";
 import React from "react";
 
 type MedidaListaItemProps = {
-  medida: TypeMedida;
-  onClick: (medida: TypeMedida) => void;
+  medida: TypeMedidaLista;
+  onClick: (medida: TypeMedidaLista) => void;
 };
 
-function recuperarData(dataFirestore: TypeMedida["createdAt"]): Date | null {
+function recuperarData(
+  dataFirestore: TypeMedidaLista["createdAt"],
+): Date | null {
   if (!dataFirestore) return null;
   console.log({ dataFirestore });
   const { _seconds, _nanoseconds } = dataFirestore;

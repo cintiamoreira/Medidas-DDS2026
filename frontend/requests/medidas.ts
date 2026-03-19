@@ -6,52 +6,20 @@ export interface TypeFormCriarConta {
 
 const BASE_ROTA = "/medidas";
 
-export const getMedidas = async () => {
-  const resposta = await fetch(
-    process.env.NEXT_PUBLIC_BACKEND_URL + BASE_ROTA + "/ler-todas",
-  );
-  const dado = (await resposta.json()) as TypeMedida[];
-  console.log({ dado });
-  return dado;
-};
-
-export const postCriarConta = async (
-  dados: TypeFormCriarConta,
-  onSuccess: () => void,
-  onError: () => void,
-) => {
-  console.log(dados);
-  const dadosStringify = JSON.stringify(dados);
-  console.log(dadosStringify);
-  try {
-    const resposta = await fetch(
-      process.env.NEXT_PUBLIC_BACKEND_URL + BASE_ROTA + "/criar-conta",
-      {
-        method: "POST",
-        body: dadosStringify,
-        headers: {
-          "content-type": "application/json",
-        },
-      },
-    );
-    if (!resposta.ok) {
-      throw new Error();
-    }
-    onSuccess();
-  } catch (e) {
-    onError();
-  }
-};
-
 /** Formato Firestore Timestamp ao serializar em JSON */
 export type FirestoreTimestamp = {
   _seconds: number;
   _nanoseconds: number;
 };
 
-export interface TypeMedida {
+export interface TypeMedidaLista {
   id?: string;
   createdAt?: FirestoreTimestamp;
+  peso: number;
+  idade: number;
+}
+
+export interface TypePostFormMedida {
   idade: number;
   peso: number;
   altura: number;
@@ -65,8 +33,19 @@ export interface TypeMedida {
   medidaQuadril: number;
 }
 
+export type TypeMedida = TypeMedidaLista & TypePostFormMedida;
+
+export const getMedidas = async () => {
+  const resposta = await fetch(
+    process.env.NEXT_PUBLIC_BACKEND_URL + BASE_ROTA + "/ler-todas",
+  );
+  const dado = (await resposta.json()) as TypePostFormMedida[];
+  console.log({ dado });
+  return dado;
+};
+
 export const postMedidaCriar = async (
-  dados: TypeMedida,
+  dados: TypePostFormMedida,
   onSuccess: () => void,
   onError: () => void,
 ) => {
@@ -94,4 +73,13 @@ export const postMedidaCriar = async (
   } catch (erro) {
     onError();
   }
+};
+
+export const getMedidaPorId = async (id: string) => {
+  const resposta = await fetch(
+    process.env.NEXT_PUBLIC_BACKEND_URL + BASE_ROTA + "/ler?id=" + id,
+  );
+  const dado = (await resposta.json()) as TypeMedida;
+  console.log({ dado });
+  return dado;
 };

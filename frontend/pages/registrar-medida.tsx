@@ -3,7 +3,7 @@ import BotaoForm from "@/components/BotaoForm";
 import InputForm from "@/components/InputForm";
 import { useRouter } from "next/router";
 import { SubmitEvent, useState } from "react";
-import { postMedidaCriar, TypeMedida } from "@/requests/medidas";
+import { postMedidaCriar, TypePostFormMedida } from "@/requests/medidas";
 
 export default function Login() {
   const router = useRouter();
@@ -11,7 +11,9 @@ export default function Login() {
   const submeterFormulario = async (evento: SubmitEvent<HTMLFormElement>) => {
     evento.preventDefault();
     const formData = new FormData(evento.currentTarget);
-    const dadosLogin = Object.fromEntries(formData) as unknown as TypeMedida;
+    const dadosLogin = Object.fromEntries(
+      formData,
+    ) as unknown as TypePostFormMedida;
 
     setCarregando(true);
     await postMedidaCriar(
@@ -96,7 +98,12 @@ export default function Login() {
             required={false}
           />
 
-          <BotaoForm texto="Registrar medida" />
+          {carregando && (
+            <p className="text-sm text-zinc-600 dark:text-zinc-400">
+              Carregando
+            </p>
+          )}
+          <BotaoForm texto="Registrar medida" desabilitado={carregando} />
         </form>
       </main>
     </div>

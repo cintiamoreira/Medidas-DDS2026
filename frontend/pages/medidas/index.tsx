@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import BotaoNavegacao from "../../components/BotaoNavegacao";
-import { getMedidas, TypeMedida } from "@/requests/medidas";
+import { getMedidas, TypePostFormMedida } from "@/requests/medidas";
 import MedidaListaItem from "@/components/MedidaListaItem";
 import { useRouter } from "next/router";
 
 export default function Medidas() {
   const router = useRouter();
-  const [medidas, setMedidas] = useState<TypeMedida[]>([]);
+  const [medidas, setMedidas] = useState<TypePostFormMedida[]>([]);
   useEffect(() => {
     getMedidas().then((dados) => {
       setMedidas(dados);
