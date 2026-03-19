@@ -1,21 +1,7 @@
-import {
-  getMedidaPorId,
-  TypeMedida,
-  FirestoreTimestamp,
-} from "@/requests/medidas";
+import { formatarCreatedAt } from "@/helpers/firebaseHelper";
+import { getMedidaPorId, TypeMedida } from "@/requests/medidas";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-
-function formatarCreatedAt(raw: unknown): string {
-  if (raw == null) return "—";
-  if (typeof raw === "string") return new Date(raw).toLocaleString("pt-BR");
-  const t = raw as FirestoreTimestamp;
-  if (typeof t._seconds === "number")
-    return new Date(
-      t._seconds * 1000 + (t._nanoseconds ?? 0) / 1e6,
-    ).toLocaleString("pt-BR");
-  return "—";
-}
 
 const CAMPOS: {
   key: keyof TypeMedida;

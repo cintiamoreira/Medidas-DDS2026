@@ -1,4 +1,5 @@
-import { TypeMedidaLista, TypePostFormMedida } from "@/requests/medidas";
+import { formatarCreatedAt } from "@/helpers/firebaseHelper";
+import { TypeMedidaLista } from "@/requests/medidas";
 import React from "react";
 
 type MedidaListaItemProps = {
@@ -6,27 +7,9 @@ type MedidaListaItemProps = {
   onClick: (medida: TypeMedidaLista) => void;
 };
 
-function recuperarData(
-  dataFirestore: TypeMedidaLista["createdAt"],
-): Date | null {
-  if (!dataFirestore) return null;
-  console.log({ dataFirestore });
-  const { _seconds, _nanoseconds } = dataFirestore;
-  return new Date(_seconds * 1000 + _nanoseconds / 1e6);
-}
-
 const MedidaListaItem = (props: MedidaListaItemProps) => {
   const { medida } = props;
-  const date = recuperarData(medida.createdAt);
-  const dataCriacao = date
-    ? date.toLocaleDateString("pt-BR", {
-        day: "2-digit",
-        month: "long",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      })
-    : "—";
+  const dataCriacao = formatarCreatedAt(medida.createdAt);
 
   return (
     <article
