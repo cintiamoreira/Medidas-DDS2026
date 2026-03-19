@@ -83,3 +83,41 @@ export const getMedidaPorId = async (id: string) => {
   console.log({ dado });
   return dado;
 };
+
+export const putMedidaAtualizar = async (
+  id: string,
+  dados: TypePostFormMedida,
+) => {
+  const resposta = await fetch(
+    process.env.NEXT_PUBLIC_BACKEND_URL + BASE_ROTA + "/atualizar",
+    {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ id, ...dados }),
+    },
+  );
+  if (!resposta.ok) {
+    throw new Error("Erro ao atualizar medida");
+  }
+  const dado = (await resposta.json()) as { id: string; message: string };
+  return dado;
+};
+
+export const deleteMedidaRemover = async (
+  id: string,
+): Promise<{ id: string; message: string } | null> => {
+  const digitado = window.prompt(
+    "Para confirmar a exclusão, digite o ID da medida:",
+  );
+  if (digitado === null || digitado.trim() !== id) return null;
+
+  const resposta = await fetch(
+    process.env.NEXT_PUBLIC_BACKEND_URL + BASE_ROTA + "/remover?id=" + id,
+    { method: "DELETE" },
+  );
+  if (!resposta.ok) {
+    throw new Error("Erro ao remover medida");
+  }
+  const dado = (await resposta.json()) as { id: string; message: string };
+  return dado;
+};
