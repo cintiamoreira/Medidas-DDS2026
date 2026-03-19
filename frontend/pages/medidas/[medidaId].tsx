@@ -3,6 +3,7 @@ import DropdownTabela from "@/components/DropdownTabela";
 import InputTabela from "@/components/InputTabela";
 import { formatarCreatedAt } from "@/helpers/firebaseHelper";
 import {
+  deleteMedidaRemover,
   getMedidaPorId,
   putMedidaAtualizar,
   TypeMedida,
@@ -62,9 +63,19 @@ export default function MedidaDetalhe() {
     });
   }, [medidaId]);
 
+  const handleDeletar = async () => {
+    if (typeof medidaId !== "string") return;
+    try {
+      const resultado = await deleteMedidaRemover(medidaId);
+      if (resultado) router.push("/medidas");
+    } catch {
+      alert("Erro ao remover medida.");
+    }
+  };
+
   const dropdownItens = [
     { label: "Editar", onClick: () => setEditando(true) },
-    { label: "Deletar", onClick: () => {} }, // TODO: confirmar e deletar
+    { label: "Deletar", onClick: handleDeletar },
   ];
 
   const sempreSomenteLeitura = (key: keyof TypeMedida) =>

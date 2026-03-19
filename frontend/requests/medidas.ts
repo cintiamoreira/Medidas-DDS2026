@@ -102,3 +102,22 @@ export const putMedidaAtualizar = async (
   const dado = (await resposta.json()) as { id: string; message: string };
   return dado;
 };
+
+export const deleteMedidaRemover = async (
+  id: string,
+): Promise<{ id: string; message: string } | null> => {
+  const digitado = window.prompt(
+    "Para confirmar a exclusão, digite o ID da medida:",
+  );
+  if (digitado === null || digitado.trim() !== id) return null;
+
+  const resposta = await fetch(
+    process.env.NEXT_PUBLIC_BACKEND_URL + BASE_ROTA + "/remover?id=" + id,
+    { method: "DELETE" },
+  );
+  if (!resposta.ok) {
+    throw new Error("Erro ao remover medida");
+  }
+  const dado = (await resposta.json()) as { id: string; message: string };
+  return dado;
+};

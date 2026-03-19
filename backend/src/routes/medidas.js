@@ -89,7 +89,27 @@ routerMedidas.put('/atualizar', async (req, res) => {
   }
 });
 routerMedidas.delete('/remover', async (req, res) => {
-  console.log('DELETE /remover');
+  const id = req.query.id;
+  if (!id || typeof id !== 'string' || id.trim() === '') {
+    return res.status(400).json({
+      error: 'Parâmetro id é obrigatório e deve ser uma string não vazia',
+    });
+  }
+  if (!db) {
+    return res.status(503).json({ error: 'Firestore não disponível' });
+  }
+  try {
+    const docRef = db.collection('medidas').doc(id);
+    const doc = await docRef.get();
+    if (!doc.exists) {
+      return res.status(404).json({ error: 'Medida não encontrada' });
+    }
+    await docRef.delete();
+    res.status(200).json({ id, message: 'Medida removida' });
+  } catch (erro) {
+    console.error('Erro ao remover medida:', erro);
+    res.status(500).json({ error: 'Erro ao remover medida' });
+  }
 });
 
 export default routerMedidas;
