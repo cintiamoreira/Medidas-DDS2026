@@ -40,6 +40,7 @@ export default function CriarConta() {
           className="flex w-full max-w-sm flex-col items-center gap-4"
           onSubmit={submeterFormulario}
         >
+          <InputForm titulo="Nome" name="nome" type="text" required />
           <InputForm titulo="Email" name="email" type="email" required />
           <InputForm titulo="Senha" name="senha" type="password" required />
           <InputForm
