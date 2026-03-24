@@ -12,3 +12,12 @@ export const schemaUsuarioEmailSenha = z
       .openapi({ example: 'senha123', minLength: 6 }),
   })
   .openapi('UsuarioEmailSenha');
+
+export const schemaQueryIdUsuario = z
+  .object({
+    id: z
+      .string()
+      .min(1, { message: 'id é obrigatório' })
+      .openapi({ example: 'firebaseUidDoUsuario' }),
+  })
+  .openapi('UsuarioQueryId');

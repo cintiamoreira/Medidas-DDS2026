@@ -1,7 +1,11 @@
 import express from 'express';
 import { auth } from '../config/firebase.js';
 import { validarEExecutar } from '../helpers/validacao.js';
-import { schemaUsuarioEmailSenha } from '../schemas/usuarios.js';
+import {
+  schemaQueryIdUsuario,
+  schemaUsuarioEmailSenha,
+} from '../schemas/usuarios.js';
+import { normalizarQueryId } from '../utils/normalizarQuery.js';
 
 const routerUsuarios = express.Router();
 
@@ -57,6 +61,55 @@ routerUsuarios.post(
         res
           .status(500)
           .json({ message: 'Houve um problema para realizar o login', erro });
+      }
+    },
+  })
+);
+
+routerUsuarios.get(
+  '/informacoes',
+  validarEExecutar({
+    schema: schemaQueryIdUsuario,
+    obterDados: (req) => req.query ?? {},
+    executar: async (data, req, res) => {
+      const { id } = data;
+      try {
+        const userRecord = await auth.getUser(id);
+        res.status(200).json({
+          email: userRecord.email ?? null,
+          nome: userRecord.displayName ?? null,
+        });
+      } catch (erro) {
+        if (erro?.code === 'auth/user-not-found') {
+          return res.status(404).json({ message: 'Usuário não encontrado' });
+        }
+        res.status(500).json({
+          message: 'Erro ao buscar informações do usuário',
+        });
+      }
+    },
+  })
+);
+
+routerUsuarios.delete(
+  '/remover',
+  validarEExecutar({
+    schema: schemaQueryIdUsuario,
+    obterDados: (req) => normalizarQueryId(req.query),
+    executar: async (data, req, res) => {
+      const { id } = data;
+      if (!auth) {
+        return res.status(503).json({ error: 'Autenticação não disponível' });
+      }
+      try {
+        await auth.deleteUser(id);
+        res.status(200).json({ id, message: 'Usuário removido' });
+      } catch (erro) {
+        if (erro?.code === 'auth/user-not-found') {
+          return res.status(404).json({ message: 'Usuário não encontrado' });
+        }
+        console.error('Erro ao remover usuário:', erro);
+        res.status(500).json({ message: 'Erro ao remover usuário' });
       }
     },
   })

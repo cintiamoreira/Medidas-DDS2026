@@ -8,7 +8,10 @@ import {
   schemaMedidaCriar,
   schemaQueryIdMedida,
 } from '../schemas/medidas.js';
-import { schemaUsuarioEmailSenha } from '../schemas/usuarios.js';
+import {
+  schemaQueryIdUsuario,
+  schemaUsuarioEmailSenha,
+} from '../schemas/usuarios.js';
 
 const registry = new OpenAPIRegistry();
 
@@ -47,6 +50,13 @@ const ErroSimples = z.object({ error: z.string() }).openapi('ErroSimples');
 const LoginSucesso = z.record(z.string(), z.unknown()).openapi('LoginSucesso');
 
 const ContaCriada = z.object({ message: z.string() }).openapi('ContaCriada');
+
+const InformacoesUsuario = z
+  .object({
+    email: z.string().nullable(),
+    nome: z.string().nullable(),
+  })
+  .openapi('InformacoesUsuario');
 
 const MedidaDocumento = z
   .record(z.string(), z.unknown())
@@ -99,6 +109,58 @@ registry.registerPath({
       description: 'Validação',
       content: { 'application/json': { schema: ErroValidacao } },
     },
+    500: { description: 'Erro no servidor' },
+  },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/usuarios/informacoes',
+  summary: 'Dados do usuário por id (Firebase UID)',
+  tags: ['Usuários'],
+  request: {
+    query: schemaQueryIdUsuario,
+  },
+  responses: {
+    200: {
+      description: 'E-mail e nome (displayName)',
+      content: { 'application/json': { schema: InformacoesUsuario } },
+    },
+    400: {
+      description: 'Validação',
+      content: { 'application/json': { schema: ErroValidacao } },
+    },
+    404: { description: 'Usuário não encontrado' },
+    500: { description: 'Erro no servidor' },
+  },
+});
+
+const UsuarioRemovido = z
+  .object({
+    id: z.string(),
+    message: z.string(),
+  })
+  .openapi('UsuarioRemovido');
+
+registry.registerPath({
+  method: 'delete',
+  path: '/usuarios/remover',
+  summary: 'Remover usuário (Firebase Auth) por id',
+  tags: ['Usuários'],
+  request: {
+    query: schemaQueryIdUsuario,
+  },
+  responses: {
+    200: {
+      description: 'Usuário removido',
+      content: { 'application/json': { schema: UsuarioRemovido } },
+    },
+    400: {
+      description: 'Validação',
+      content: { 'application/json': { schema: ErroValidacao } },
+    },
+    404: { description: 'Usuário não encontrado' },
+    503: { description: 'Serviço indisponível' },
     500: { description: 'Erro no servidor' },
   },
 });
