@@ -4,6 +4,7 @@ import cors from 'cors';
 import './config/firebase.js';
 import routerUsuarios from './routes/usuarios.js';
 import routerMedidas from './routes/medidas.js';
+import { swaggerSpec, swaggerUiMiddleware, swaggerUiSetup } from './swagger.js';
 
 const app = express();
 const PORT = process.env.PORT || 4020;
@@ -22,6 +23,12 @@ app.get('/health', (req, res) => {
   console.log('GET /health');
   res.json({ status: 'ok' });
 });
+
+app.get('/openapi.json', (req, res) => {
+  res.json(swaggerSpec);
+});
+
+app.use('/api-docs', swaggerUiMiddleware, swaggerUiSetup);
 
 app.use('/usuarios', routerUsuarios);
 app.use('/medidas', routerMedidas);
