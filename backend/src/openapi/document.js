@@ -11,6 +11,7 @@ import {
 import {
   schemaLoginResposta,
   schemaQueryIdUsuario,
+  schemaUsuarioCriarConta,
   schemaUsuarioEmailSenha,
 } from '../schemas/usuarios.js';
 
@@ -95,7 +96,7 @@ registry.registerPath({
   request: {
     body: {
       content: {
-        'application/json': { schema: schemaUsuarioEmailSenha },
+        'application/json': { schema: schemaUsuarioCriarConta },
       },
     },
   },

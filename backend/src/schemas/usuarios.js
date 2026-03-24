@@ -13,6 +13,16 @@ export const schemaUsuarioEmailSenha = z
   })
   .openapi('UsuarioEmailSenha');
 
+export const schemaUsuarioCriarConta = schemaUsuarioEmailSenha
+  .extend({
+    nome: z
+      .string()
+      .min(1, { message: 'Nome é obrigatório' })
+      .trim()
+      .openapi({ example: 'Maria Silva' }),
+  })
+  .openapi('UsuarioCriarConta');
+
 /** Campos do Identity Toolkit usados para sessão (cookies / storage no cliente). */
 export const schemaLoginResposta = z
   .object({

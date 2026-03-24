@@ -3,6 +3,7 @@ import { auth } from '../config/firebase.js';
 import { validarEExecutar } from '../helpers/validacao.js';
 import {
   schemaQueryIdUsuario,
+  schemaUsuarioCriarConta,
   schemaUsuarioEmailSenha,
 } from '../schemas/usuarios.js';
 import { normalizarQueryId } from '../utils/normalizarQuery.js';
@@ -12,15 +13,16 @@ const routerUsuarios = express.Router();
 routerUsuarios.post(
   '/criar-conta',
   validarEExecutar({
-    schema: schemaUsuarioEmailSenha,
+    schema: schemaUsuarioCriarConta,
     obterDados: (req) => req.body ?? {},
     executar: async (data, req, res) => {
       console.log('POST /criar-conta');
-      const { email, senha } = data;
+      const { email, senha, nome } = data;
       try {
         await auth.createUser({
           email,
           password: senha,
+          displayName: nome,
         });
         res.status(200).json({ message: 'Conta criada com sucesso' });
       } catch {
