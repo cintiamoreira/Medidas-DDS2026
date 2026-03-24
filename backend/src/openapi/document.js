@@ -20,7 +20,6 @@ const registry = new OpenAPIRegistry();
 const ErroValidacao = z
   .object({
     error: z.string(),
-    detalhes: z.unknown().optional(),
   })
   .openapi('ErroValidacao');
 
