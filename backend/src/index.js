@@ -4,10 +4,11 @@ import cors from 'cors';
 import './config/firebase.js';
 import routerUsuarios from './routes/usuarios.js';
 import routerMedidas from './routes/medidas.js';
-import { swaggerSpec, swaggerUiMiddleware, swaggerUiSetup } from './swagger.js';
 
 const app = express();
 const PORT = process.env.PORT || 4020;
+
+const ambienteDesenvolvimento = process.env.NODE_ENV === 'development';
 
 app.use(
   cors({
@@ -22,15 +23,23 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-app.get('/openapi.json', (req, res) => {
-  res.json(swaggerSpec);
-});
-
-app.use('/api-docs', swaggerUiMiddleware, swaggerUiSetup);
-
 app.use('/usuarios', routerUsuarios);
 app.use('/medidas', routerMedidas);
 
-app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}`);
-});
+async function iniciar() {
+  if (ambienteDesenvolvimento) {
+    const { swaggerSpec, swaggerUiMiddleware, swaggerUiSetup } =
+      await import('./swagger.js');
+    app.get('/openapi.json', (req, res) => {
+      res.json(swaggerSpec);
+    });
+    app.use('/api-docs', swaggerUiMiddleware, swaggerUiSetup);
+    console.log('Documentação: /api-docs e /openapi.json');
+  }
+
+  app.listen(PORT, () => {
+    console.log(`Example app listening on port ${PORT}`);
+  });
+}
+
+iniciar();
