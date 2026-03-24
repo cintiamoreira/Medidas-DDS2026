@@ -1,40 +1,42 @@
-import { z } from 'zod';
+import { z } from './zod-instance.js';
 
-const idQuery = z.preprocess(
-  (val) => {
-    if (Array.isArray(val)) return val[0];
-    return val;
-  },
-  z.string().min(1, { message: 'id é obrigatório' })
-);
+const numeroCampo = () => z.coerce.number().finite().openapi({ example: 70 });
 
-export const schemaQueryIdMedida = z.object({
-  id: idQuery,
-});
-
-const numeroMedida = z.coerce.number().finite();
+export const schemaQueryIdMedida = z
+  .object({
+    id: z
+      .string()
+      .min(1, { message: 'id é obrigatório' })
+      .openapi({ example: 'documentoFirestoreId' }),
+  })
+  .openapi('MedidaQueryId');
 
 const camposMedida = {
-  idade: numeroMedida,
-  peso: numeroMedida,
-  altura: numeroMedida,
-  medidaBracoEsquerdo: numeroMedida,
-  medidaBracoDireito: numeroMedida,
-  medidaCoxaEsquerda: numeroMedida,
-  medidaCoxaDireita: numeroMedida,
-  medidaPanturrilhaEsquerda: numeroMedida,
-  medidaPanturrilhaDireita: numeroMedida,
-  medidaTorax: numeroMedida,
-  medidaQuadril: numeroMedida,
+  idade: numeroCampo(),
+  peso: numeroCampo(),
+  altura: numeroCampo(),
+  medidaBracoEsquerdo: numeroCampo(),
+  medidaBracoDireito: numeroCampo(),
+  medidaCoxaEsquerda: numeroCampo(),
+  medidaCoxaDireita: numeroCampo(),
+  medidaPanturrilhaEsquerda: numeroCampo(),
+  medidaPanturrilhaDireita: numeroCampo(),
+  medidaTorax: numeroCampo(),
+  medidaQuadril: numeroCampo(),
 };
 
-export const schemaMedidaCriar = z.object(camposMedida);
+export const schemaMedidaCriar = z.object(camposMedida).openapi('MedidaCriar');
 
 export const schemaMedidaAtualizar = z
   .object({
-    id: z.string().min(1, { message: 'id é obrigatório' }).trim(),
+    id: z
+      .string()
+      .min(1, { message: 'id é obrigatório' })
+      .trim()
+      .openapi({ example: 'documentoFirestoreId' }),
     ...Object.fromEntries(
       Object.keys(camposMedida).map((k) => [k, camposMedida[k].optional()])
     ),
   })
-  .strict();
+  .strict()
+  .openapi('MedidaAtualizar');

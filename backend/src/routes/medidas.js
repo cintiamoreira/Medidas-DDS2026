@@ -5,12 +5,13 @@ import {
   schemaMedidaCriar,
   schemaQueryIdMedida,
 } from '../schemas/medidas.js';
+import { normalizarQueryId } from '../utils/normalizarQuery.js';
 import { respostaErroValidacao } from '../validation/respostaErro.js';
 
 const routerMedidas = express.Router();
 
 routerMedidas.get('/ler', async (req, res) => {
-  const parsed = schemaQueryIdMedida.safeParse(req.query);
+  const parsed = schemaQueryIdMedida.safeParse(normalizarQueryId(req.query));
   if (!parsed.success) {
     return respostaErroValidacao(res, parsed.error);
   }
@@ -108,7 +109,7 @@ routerMedidas.put('/atualizar', async (req, res) => {
 });
 
 routerMedidas.delete('/remover', async (req, res) => {
-  const parsed = schemaQueryIdMedida.safeParse(req.query);
+  const parsed = schemaQueryIdMedida.safeParse(normalizarQueryId(req.query));
   if (!parsed.success) {
     return respostaErroValidacao(res, parsed.error);
   }

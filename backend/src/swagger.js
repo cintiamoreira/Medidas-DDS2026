@@ -1,23 +1,7 @@
-import swaggerJSDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
+import { buildOpenApiDocument } from './openapi/document.js';
 
-const options = {
-  definition: {
-    openapi: '3.0.3',
-    info: {
-      title: 'Medidas DDS API',
-      version: '1.0.0',
-    },
-    servers: [
-      {
-        url: process.env.SWAGGER_SERVER_URL || 'http://localhost:4020',
-      },
-    ],
-  },
-  apis: [],
-};
-
-export const swaggerSpec = swaggerJSDoc(options);
+export const swaggerSpec = buildOpenApiDocument();
 
 export const swaggerUiMiddleware = swaggerUi.serve;
 export const swaggerUiSetup = swaggerUi.setup(swaggerSpec, {
