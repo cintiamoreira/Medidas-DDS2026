@@ -1,4 +1,6 @@
+/** Campos do formulário de cadastro (confirmarSenha só no cliente). */
 export interface TypeFormCriarConta {
+  nome: string;
   email: string;
   senha: string;
   confirmarSenha: string;
@@ -20,7 +22,12 @@ export const postCriarConta = async (
   onError: () => void,
 ) => {
   console.log(dados);
-  const dadosStringify = JSON.stringify(dados);
+  const corpo = {
+    nome: dados.nome,
+    email: dados.email,
+    senha: dados.senha,
+  };
+  const dadosStringify = JSON.stringify(corpo);
   console.log(dadosStringify);
   try {
     const resposta = await fetch(
