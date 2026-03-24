@@ -1,13 +1,20 @@
 import express from 'express';
 import { db } from '../config/firebase.js';
+import {
+  schemaMedidaAtualizar,
+  schemaMedidaCriar,
+  schemaQueryIdMedida,
+} from '../schemas/medidas.js';
+import { respostaErroValidacao } from '../validation/respostaErro.js';
 
 const routerMedidas = express.Router();
 
 routerMedidas.get('/ler', async (req, res) => {
-  const id = req.query.id;
-  if (!id || typeof id !== 'string') {
-    return res.status(400).json({ error: 'Parâmetro id é obrigatório' });
+  const parsed = schemaQueryIdMedida.safeParse(req.query);
+  if (!parsed.success) {
+    return respostaErroValidacao(res, parsed.error);
   }
+  const { id } = parsed.data;
   if (!db) {
     return res.status(503).json({ error: 'Firestore não disponível' });
   }
@@ -23,6 +30,7 @@ routerMedidas.get('/ler', async (req, res) => {
     res.status(500).json({ error: 'Erro ao ler medida' });
   }
 });
+
 routerMedidas.get('/ler-todas', async (req, res) => {
   console.log('GET /ler-todas');
   if (!db) {
@@ -45,15 +53,19 @@ routerMedidas.get('/ler-todas', async (req, res) => {
     res.status(500).json({ error: 'Erro ao ler todas as medidas' });
   }
 });
+
 routerMedidas.post('/criar', async (req, res) => {
   console.log('POST /criar');
+  const parsed = schemaMedidaCriar.safeParse(req.body ?? {});
+  if (!parsed.success) {
+    return respostaErroValidacao(res, parsed.error);
+  }
   if (!db) {
     return res.status(503).json({ error: 'Firestore não disponível' });
   }
   try {
-    const payload = req.body || {};
     const ref = await db.collection('medidas').add({
-      ...payload,
+      ...parsed.data,
       createdAt: new Date(),
     });
     res.status(201).json({ id: ref.id, message: 'Medida criada' });
@@ -62,12 +74,20 @@ routerMedidas.post('/criar', async (req, res) => {
     res.status(500).json({ error: 'Erro ao criar medida' });
   }
 });
+
 routerMedidas.put('/atualizar', async (req, res) => {
   console.log('PUT /atualizar');
-  const { id, ...payload } = req.body || {};
-  if (!id || typeof id !== 'string' || id.trim() === '') {
+  const parsed = schemaMedidaAtualizar.safeParse(req.body ?? {});
+  if (!parsed.success) {
+    return respostaErroValidacao(res, parsed.error);
+  }
+  const { id, ...rest } = parsed.data;
+  const camposAtualizaveis = Object.fromEntries(
+    Object.entries(rest).filter(([, v]) => v !== undefined)
+  );
+  if (Object.keys(camposAtualizaveis).length === 0) {
     return res.status(400).json({
-      error: 'Campo id é obrigatório e deve ser uma string não vazia',
+      error: 'Informe ao menos um campo numérico para atualizar além do id',
     });
   }
   if (!db) {
@@ -79,8 +99,6 @@ routerMedidas.put('/atualizar', async (req, res) => {
     if (!doc.exists) {
       return res.status(404).json({ error: 'Medida não encontrada' });
     }
-    // eslint-disable-next-line no-unused-vars
-    const { createdAt, ...camposAtualizaveis } = payload;
     await docRef.update(camposAtualizaveis);
     res.status(200).json({ id, message: 'Medida atualizada' });
   } catch (erro) {
@@ -88,13 +106,13 @@ routerMedidas.put('/atualizar', async (req, res) => {
     res.status(500).json({ error: 'Erro ao atualizar medida' });
   }
 });
+
 routerMedidas.delete('/remover', async (req, res) => {
-  const id = req.query.id;
-  if (!id || typeof id !== 'string' || id.trim() === '') {
-    return res.status(400).json({
-      error: 'Parâmetro id é obrigatório e deve ser uma string não vazia',
-    });
+  const parsed = schemaQueryIdMedida.safeParse(req.query);
+  if (!parsed.success) {
+    return respostaErroValidacao(res, parsed.error);
   }
+  const { id } = parsed.data;
   if (!db) {
     return res.status(503).json({ error: 'Firestore não disponível' });
   }
