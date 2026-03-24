@@ -15,7 +15,7 @@ export default function Login() {
     const dadosLogin = Object.fromEntries(formData) as unknown as TypeFormLogin;
     postLogin(
       dadosLogin,
-      () => {
+      (_sessao) => {
         router.push("/medidas");
       },
       () => {

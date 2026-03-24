@@ -46,7 +46,7 @@ routerUsuarios.post(
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            email,
+            email: email,
             password: senha,
             returnSecureToken: true,
           }),
@@ -55,8 +55,26 @@ routerUsuarios.post(
           throw new Error('Resposta não ok');
         }
         const dados = await response.json();
+        const {
+          idToken,
+          refreshToken,
+          expiresIn,
+          localId,
+          email: emailResposta,
+        } = dados;
+        if (!idToken || !refreshToken || !localId) {
+          return res.status(502).json({
+            message: 'Resposta de autenticação inválida',
+          });
+        }
 
-        res.status(200).json(dados);
+        res.status(200).json({
+          idToken,
+          refreshToken,
+          expiresIn: String(expiresIn ?? ''),
+          userId: localId,
+          email: emailResposta ?? null,
+        });
       } catch (erro) {
         res
           .status(500)

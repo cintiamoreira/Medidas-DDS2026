@@ -9,6 +9,7 @@ import {
   schemaQueryIdMedida,
 } from '../schemas/medidas.js';
 import {
+  schemaLoginResposta,
   schemaQueryIdUsuario,
   schemaUsuarioEmailSenha,
 } from '../schemas/usuarios.js';
@@ -46,8 +47,6 @@ const MedidaRemovida = z
   .openapi('MedidaRemovida');
 
 const ErroSimples = z.object({ error: z.string() }).openapi('ErroSimples');
-
-const LoginSucesso = z.record(z.string(), z.unknown()).openapi('LoginSucesso');
 
 const ContaCriada = z.object({ message: z.string() }).openapi('ContaCriada');
 
@@ -179,13 +178,15 @@ registry.registerPath({
   },
   responses: {
     200: {
-      description: 'Resposta do Identity Toolkit',
-      content: { 'application/json': { schema: LoginSucesso } },
+      description:
+        'Tokens e identificadores para sessão (idToken, refreshToken, userId)',
+      content: { 'application/json': { schema: schemaLoginResposta } },
     },
     400: {
       description: 'Validação',
       content: { 'application/json': { schema: ErroValidacao } },
     },
+    502: { description: 'Resposta do provedor de auth inválida' },
     500: { description: 'Erro no servidor' },
   },
 });

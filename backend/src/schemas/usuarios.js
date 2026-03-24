@@ -13,6 +13,28 @@ export const schemaUsuarioEmailSenha = z
   })
   .openapi('UsuarioEmailSenha');
 
+/** Campos do Identity Toolkit usados para sessão (cookies / storage no cliente). */
+export const schemaLoginResposta = z
+  .object({
+    idToken: z.string().openapi({
+      description: 'JWT do Firebase para Authorization: Bearer (curta duração)',
+    }),
+    refreshToken: z.string().openapi({
+      description: 'Token para renovar o idToken sem novo login',
+    }),
+    expiresIn: z.string().openapi({
+      description: 'TTL do idToken em segundos (string numérica)',
+      example: '3600',
+    }),
+    userId: z.string().openapi({
+      description: 'UID do usuário no Firebase (localId)',
+    }),
+    email: z.string().email().nullable().openapi({
+      description: 'E-mail da conta autenticada',
+    }),
+  })
+  .openapi('LoginResposta');
+
 export const schemaQueryIdUsuario = z
   .object({
     id: z

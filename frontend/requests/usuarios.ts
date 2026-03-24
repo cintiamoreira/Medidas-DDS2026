@@ -43,13 +43,23 @@ export const postCriarConta = async (
 };
 
 export interface TypeFormLogin {
-  usuario: string;
+  email: string;
   senha: string;
+}
+
+/** Retorno do POST /usuarios/login — adequado para cookies httpOnly (via API route) ou storage conforme a política de segurança. */
+export interface TypeLoginResposta {
+  idToken: string;
+  refreshToken: string;
+  /** TTL do idToken em segundos (string numérica, ex.: "3600"). */
+  expiresIn: string;
+  userId: string;
+  email: string | null;
 }
 
 export const postLogin = async (
   dados: TypeFormLogin,
-  onSuccess: () => void,
+  onSuccess: (sessao: TypeLoginResposta) => void,
   onError: () => void,
 ) => {
   console.log(dados);
@@ -70,9 +80,9 @@ export const postLogin = async (
     if (!resposta.ok) {
       throw new Error();
     }
-    const dados = await resposta.json();
-    console.log({ dados }); // salvar os dados em cookie para usar em varias paginas (ou outra solucao de state tipo zustand)
-    onSuccess();
+    const sessao = (await resposta.json()) as TypeLoginResposta;
+    console.log({ sessao });
+    onSuccess(sessao);
   } catch (erro) {
     onError();
   }
