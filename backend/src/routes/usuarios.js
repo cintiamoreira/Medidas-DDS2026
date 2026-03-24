@@ -3,6 +3,7 @@ import { auth } from '../config/firebase.js';
 import { validarEExecutar } from '../helpers/validacao.js';
 import {
   schemaQueryIdUsuario,
+  schemaUsuarioAtualizar,
   schemaUsuarioCriarConta,
   schemaUsuarioEmailSenha,
 } from '../schemas/usuarios.js';
@@ -81,6 +82,30 @@ routerUsuarios.post(
         res
           .status(500)
           .json({ message: 'Houve um problema para realizar o login', erro });
+      }
+    },
+  })
+);
+
+routerUsuarios.put(
+  '/atualizar',
+  validarEExecutar({
+    schema: schemaUsuarioAtualizar,
+    obterDados: (req) => req.body ?? {},
+    executar: async (data, req, res) => {
+      const { id, nome } = data;
+      if (!auth) {
+        return res.status(503).json({ error: 'Autenticação não disponível' });
+      }
+      try {
+        await auth.updateUser(id, { displayName: nome });
+        res.status(200).json({ id, message: 'Usuário atualizado' });
+      } catch (erro) {
+        if (erro?.code === 'auth/user-not-found') {
+          return res.status(404).json({ message: 'Usuário não encontrado' });
+        }
+        console.error('Erro ao atualizar usuário:', erro);
+        res.status(500).json({ message: 'Erro ao atualizar usuário' });
       }
     },
   })

@@ -23,6 +23,20 @@ export const schemaUsuarioCriarConta = schemaUsuarioEmailSenha
   })
   .openapi('UsuarioCriarConta');
 
+export const schemaUsuarioAtualizar = z
+  .object({
+    id: z
+      .string()
+      .min(1, { message: 'id é obrigatório' })
+      .openapi({ example: 'firebaseUidDoUsuario' }),
+    nome: z
+      .string()
+      .min(1, { message: 'Nome é obrigatório' })
+      .trim()
+      .openapi({ example: 'Maria Silva' }),
+  })
+  .openapi('UsuarioAtualizar');
+
 /** Campos do Identity Toolkit usados para sessão (cookies / storage no cliente). */
 export const schemaLoginResposta = z
   .object({

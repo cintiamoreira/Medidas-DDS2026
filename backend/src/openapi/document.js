@@ -11,6 +11,7 @@ import {
 import {
   schemaLoginResposta,
   schemaQueryIdUsuario,
+  schemaUsuarioAtualizar,
   schemaUsuarioCriarConta,
   schemaUsuarioEmailSenha,
 } from '../schemas/usuarios.js';
@@ -109,6 +110,40 @@ registry.registerPath({
       content: { 'application/json': { schema: ErroValidacao } },
     },
     500: { description: 'Erro no servidor' },
+  },
+});
+
+const UsuarioAtualizado = z
+  .object({
+    id: z.string(),
+    message: z.string(),
+  })
+  .openapi('UsuarioAtualizado');
+
+registry.registerPath({
+  method: 'put',
+  path: '/usuarios/atualizar',
+  summary: 'Atualizar nome (displayName) do usuário',
+  tags: ['Usuários'],
+  request: {
+    body: {
+      content: {
+        'application/json': { schema: schemaUsuarioAtualizar },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Nome atualizado',
+      content: { 'application/json': { schema: UsuarioAtualizado } },
+    },
+    400: {
+      description: 'Validação',
+      content: { 'application/json': { schema: ErroValidacao } },
+    },
+    404: { description: 'Usuário não encontrado' },
+    500: { description: 'Erro no servidor' },
+    503: { description: 'Serviço indisponível' },
   },
 });
 
