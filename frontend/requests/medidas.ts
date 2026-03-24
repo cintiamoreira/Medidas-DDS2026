@@ -6,7 +6,6 @@ export interface TypeFormCriarConta {
 
 const BASE_ROTA = "/medidas";
 
-/** Formato Firestore Timestamp ao serializar em JSON */
 export type FirestoreTimestamp = {
   _seconds: number;
   _nanoseconds: number;
@@ -68,7 +67,7 @@ export const postMedidaCriar = async (
       throw new Error();
     }
     const dados = await resposta.json();
-    console.log({ dados }); // salvar os dados em cookie para usar em varias paginas (ou outra solucao de state tipo zustand)
+    console.log({ dados });
     onSuccess();
   } catch (erro) {
     onError();
