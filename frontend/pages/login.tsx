@@ -1,22 +1,19 @@
 import BotaoForm from "@/components/BotaoForm";
 import BotaoNavegacao from "../components/BotaoNavegacao";
 import InputForm from "@/components/InputForm";
-import { getHealth } from "@/requests/inicial";
-import { useRouter } from "next/router";
 import { SubmitEvent } from "react";
 import { postLogin, TypeFormLogin } from "@/requests/usuarios";
 
 export default function Login() {
-  const router = useRouter();
-
   const submeterFormulario = (evento: SubmitEvent<HTMLFormElement>) => {
     evento.preventDefault();
     const formData = new FormData(evento.currentTarget);
     const dadosLogin = Object.fromEntries(formData) as unknown as TypeFormLogin;
     postLogin(
       dadosLogin,
-      (_sessao) => {
-        router.push("/medidas");
+      () => {
+        alert("Login realizado com sucesso!");
+        /* Sessão em cookies HttpOnly; redirecionamento será adicionado depois. */
       },
       () => {
         alert("Erro ao logar!");

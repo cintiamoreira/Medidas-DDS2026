@@ -58,7 +58,6 @@ export interface TypeFormLogin {
 export interface TypeLoginResposta {
   idToken: string;
   refreshToken: string;
-  /** TTL do idToken em segundos (string numérica, ex.: "3600"). */
   expiresIn: string;
   userId: string;
   email: string | null;
@@ -88,6 +87,13 @@ export const postLogin = async (
       throw new Error();
     }
     const sessao = (await resposta.json()) as TypeLoginResposta;
+    const okCookies = await fetch("/api/auth/sessao", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(sessao),
+      credentials: "same-origin",
+    }).then((r) => r.ok);
+    if (!okCookies) throw new Error();
     console.log({ sessao });
     onSuccess(sessao);
   } catch (erro) {
