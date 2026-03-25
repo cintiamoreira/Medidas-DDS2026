@@ -9,6 +9,7 @@ import {
   TypeMedida,
   TypePostFormMedida,
 } from "@/requests/medidas";
+import { temSessaoCookie } from "@/requests/usuarios";
 import { Pencil, Trash2 } from "lucide-react";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -57,12 +58,23 @@ export default function MedidaDetalhe() {
   const [salvando, setSalvando] = useState(false);
 
   useEffect(() => {
-    if (typeof medidaId !== "string") return;
-    getMedidaPorId(medidaId).then((dados) => {
-      setMedida(dados);
-      setFormValues(dados);
-    });
-  }, [medidaId]);
+    let ativo = true;
+    void (async () => {
+      if (!(await temSessaoCookie())) {
+        if (ativo) await router.replace("/login");
+        return;
+      }
+      if (typeof medidaId !== "string") return;
+      const dados = await getMedidaPorId(medidaId);
+      if (ativo) {
+        setMedida(dados);
+        setFormValues(dados);
+      }
+    })();
+    return () => {
+      ativo = false;
+    };
+  }, [router, medidaId]);
 
   const handleDeletar = async () => {
     if (typeof medidaId !== "string") return;
