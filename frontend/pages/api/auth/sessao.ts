@@ -33,6 +33,19 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(204).end();
   }
 
-  res.setHeader("Allow", "GET, POST");
+  if (req.method === "DELETE") {
+    const expirar = "Max-Age=0";
+    const base = `Path=/; ${expirar}; SameSite=Lax`;
+    const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
+    const limpar = (nome: string) => `${nome}=; ${base}${secure}; HttpOnly`;
+    res.setHeader("Set-Cookie", [
+      limpar("id_token"),
+      limpar("refresh_token"),
+      limpar("user_id"),
+    ]);
+    return res.status(204).end();
+  }
+
+  res.setHeader("Allow", "GET, POST, DELETE");
   return res.status(405).end();
 }

@@ -1,5 +1,5 @@
 import BotaoTabela from "@/components/BotaoTabela";
-import DropdownTabela from "@/components/DropdownTabela";
+import MenuDropdown from "@/components/MenuDropdown";
 import InputTabela from "@/components/InputTabela";
 import { formatarCreatedAt } from "@/helpers/firebaseHelper";
 import {
@@ -9,6 +9,7 @@ import {
   TypeMedida,
   TypePostFormMedida,
 } from "@/requests/medidas";
+import { Pencil, Trash2 } from "lucide-react";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
@@ -74,8 +75,18 @@ export default function MedidaDetalhe() {
   };
 
   const dropdownItens = [
-    { label: "Editar", onClick: () => setEditando(true) },
-    { label: "Deletar", onClick: handleDeletar },
+    {
+      label: "Editar",
+      tom: "primario" as const,
+      icone: <Pencil aria-hidden />,
+      onClick: () => setEditando(true),
+    },
+    {
+      label: "Deletar",
+      tom: "danger" as const,
+      icone: <Trash2 aria-hidden />,
+      onClick: handleDeletar,
+    },
   ];
 
   const sempreSomenteLeitura = (key: keyof TypeMedida) =>
@@ -131,7 +142,7 @@ export default function MedidaDetalhe() {
           <h1 className="text-xl font-semibold text-zinc-900 dark:text-white">
             Detalhes da medida
           </h1>
-          <DropdownTabela itens={dropdownItens} />
+          <MenuDropdown itens={dropdownItens} />
         </div>
         <div className="flex flex-col">
           {CAMPOS.map(({ key, label, type, format }) => {

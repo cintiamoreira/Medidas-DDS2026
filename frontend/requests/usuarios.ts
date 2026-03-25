@@ -51,6 +51,25 @@ export async function putUsuarioAtualizar(
   }
 }
 
+/** DELETE /usuarios/remover?id= — remove o usuário no Firebase Auth. */
+export async function deleteUsuarioRemover(userId: string): Promise<void> {
+  const url = new URL(
+    `${process.env.NEXT_PUBLIC_BACKEND_URL}${BASE_ROTA}/remover`,
+  );
+  url.searchParams.set("id", userId);
+  const resposta = await fetch(url.toString(), { method: "DELETE" });
+  if (!resposta.ok) {
+    throw new Error("Não foi possível excluir a conta.");
+  }
+}
+
+export async function limparSessaoCookies(): Promise<void> {
+  await fetch("/api/auth/sessao", {
+    method: "DELETE",
+    credentials: "same-origin",
+  });
+}
+
 /** `userId` gravado no cookie httpOnly (via GET /api/auth/sessao). */
 export async function getUserIdDaSessao(): Promise<string | null> {
   const resposta = await fetch("/api/auth/sessao", {

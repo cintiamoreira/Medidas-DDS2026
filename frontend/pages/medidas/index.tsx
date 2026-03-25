@@ -1,4 +1,4 @@
-import MenuSuperiorDropdown from "@/components/MenuSuperiorDropdown";
+import MenuDropdown from "@/components/MenuDropdown";
 import MedidaListaItem from "@/components/MedidaListaItem";
 import { getMedidas, TypePostFormMedida } from "@/requests/medidas";
 import { LogOut, PlusCircle, User } from "lucide-react";
@@ -15,9 +15,9 @@ export default function Medidas() {
   }, []);
   return (
     <div className="flex min-h-screen flex-col bg-zinc-50 font-sans dark:bg-black">
-      <MenuSuperiorDropdown
+      <MenuDropdown
         titulo="Suas medidas"
-        itensDropdown={[
+        itens={[
           {
             label: "Ver perfil",
             icone: <User aria-hidden />,
