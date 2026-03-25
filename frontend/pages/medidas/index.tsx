@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
-import BotaoNavegacao from "../../components/BotaoNavegacao";
-import { getMedidas, TypePostFormMedida } from "@/requests/medidas";
+import MenuSuperiorDropdown from "@/components/MenuSuperiorDropdown";
 import MedidaListaItem from "@/components/MedidaListaItem";
+import { getMedidas, TypePostFormMedida } from "@/requests/medidas";
+import { LogOut, PlusCircle, User } from "lucide-react";
 import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
 
 export default function Medidas() {
   const router = useRouter();
@@ -14,17 +15,35 @@ export default function Medidas() {
   }, []);
   return (
     <div className="flex min-h-screen flex-col bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col mx-auto px-16 bg-white dark:bg-black">
-        <header className="flex flex-col items-center gap-4 pt-8 pb-4">
-          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white">
-            Medidas
-          </h1>
-          <BotaoNavegacao
-            tipo="borda"
-            texto="Registrar medida"
-            href="/registrar-medida"
-          />
-        </header>
+      <MenuSuperiorDropdown
+        titulo="Suas medidas"
+        itensDropdown={[
+          {
+            label: "Ver perfil",
+            icone: <User aria-hidden />,
+            onClick: () => {
+              router.push("/perfil");
+            },
+          },
+          {
+            label: "Registrar medida",
+            tom: "primario",
+            icone: <PlusCircle aria-hidden />,
+            onClick: () => {
+              router.push("/registrar-medida");
+            },
+          },
+          {
+            label: "Sair",
+            tom: "danger",
+            icone: <LogOut aria-hidden />,
+            onClick: () => {
+              /* logout — a implementar */
+            },
+          },
+        ]}
+      />
+      <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col bg-white px-16 pb-8 pt-6 dark:bg-black">
         <div className="flex flex-col gap-4">
           {medidas.map((medida) => (
             <MedidaListaItem
