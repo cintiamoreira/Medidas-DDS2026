@@ -1,19 +1,33 @@
 import BotaoForm from "@/components/BotaoForm";
 import BotaoNavegacao from "../components/BotaoNavegacao";
 import InputForm from "@/components/InputForm";
-import { SubmitEvent } from "react";
-import { postLogin, TypeFormLogin } from "@/requests/usuarios";
+import { useRouter } from "next/router";
+import { SubmitEvent, useEffect } from "react";
+import { postLogin, temSessaoCookie, TypeFormLogin } from "@/requests/usuarios";
 
 export default function Login() {
+  const router = useRouter();
+
+  useEffect(() => {
+    let ativo = true;
+    void (async () => {
+      if (await temSessaoCookie()) {
+        if (ativo) await router.replace("/medidas");
+      }
+    })();
+    return () => {
+      ativo = false;
+    };
+  }, [router]);
+
   const submeterFormulario = (evento: SubmitEvent<HTMLFormElement>) => {
     evento.preventDefault();
     const formData = new FormData(evento.currentTarget);
     const dadosLogin = Object.fromEntries(formData) as unknown as TypeFormLogin;
     postLogin(
       dadosLogin,
-      () => {
-        alert("Login realizado com sucesso!");
-        /* Sessão em cookies HttpOnly; redirecionamento será adicionado depois. */
+      async () => {
+        await router.replace("/medidas");
       },
       () => {
         alert("Erro ao logar!");

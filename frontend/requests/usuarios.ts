@@ -63,6 +63,14 @@ export interface TypeLoginResposta {
   email: string | null;
 }
 
+/** Indica se o cookie `id_token` está presente (verificado no servidor). */
+export async function temSessaoCookie(): Promise<boolean> {
+  const resposta = await fetch("/api/auth/sessao", {
+    credentials: "same-origin",
+  });
+  return resposta.ok;
+}
+
 export const postLogin = async (
   dados: TypeFormLogin,
   onSuccess: (sessao: TypeLoginResposta) => void,
