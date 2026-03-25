@@ -5,8 +5,12 @@ const c = (name: string, value: string, maxAge: number) =>
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "GET") {
-    if (req.cookies?.id_token) return res.status(204).end();
-    return res.status(401).end();
+    if (!req.cookies?.id_token) {
+      return res.status(401).json({ message: "não autenticado" });
+    }
+    return res.status(200).json({
+      userId: req.cookies.user_id ?? null,
+    });
   }
 
   if (req.method === "POST") {
