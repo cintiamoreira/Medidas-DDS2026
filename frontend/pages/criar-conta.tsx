@@ -1,13 +1,29 @@
 import BotaoForm from "@/components/BotaoForm";
 import InputForm from "@/components/InputForm";
-import { postCriarConta, TypeFormCriarConta } from "@/requests/usuarios";
+import {
+  postCriarConta,
+  temSessaoCookie,
+  TypeFormCriarConta,
+} from "@/requests/usuarios";
 import { useRouter } from "next/router";
-import { SubmitEvent, useState } from "react";
+import { SubmitEvent, useEffect, useState } from "react";
 
 export default function CriarConta() {
   const router = useRouter();
   const [mensagemErro, setMensagemErro] = useState("");
   const [carregando, setCarregando] = useState(false);
+
+  useEffect(() => {
+    let ativo = true;
+    void (async () => {
+      if (await temSessaoCookie()) {
+        if (ativo) await router.replace("/medidas");
+      }
+    })();
+    return () => {
+      ativo = false;
+    };
+  }, [router]);
 
   const submeterFormulario = async (evento: SubmitEvent<HTMLFormElement>) => {
     evento.preventDefault();
