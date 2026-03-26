@@ -123,9 +123,16 @@ const UsuarioAtualizado = z
 registry.registerPath({
   method: 'put',
   path: '/usuarios/atualizar',
-  summary: 'Atualizar nome (displayName) do usuário',
+  summary:
+    'Atualizar nome (displayName) do próprio utilizador (requer Authorization: Bearer; `id` = UID do token)',
   tags: ['Usuários'],
   request: {
+    headers: z.object({
+      authorization: z.string().openapi({
+        description: 'Bearer <idToken> — JWT do Firebase Auth',
+        example: 'Bearer eyJhbGciOiJSUzI1NiIs...',
+      }),
+    }),
     body: {
       content: {
         'application/json': { schema: schemaUsuarioAtualizar },
@@ -140,6 +147,14 @@ registry.registerPath({
     400: {
       description: 'Validação',
       content: { 'application/json': { schema: ErroValidacao } },
+    },
+    401: {
+      description: 'Token ausente ou inválido',
+      content: { 'application/json': { schema: ErroSimples } },
+    },
+    403: {
+      description: '`id` diferente do utilizador autenticado',
+      content: { 'application/json': { schema: ErroSimples } },
     },
     404: { description: 'Usuário não encontrado' },
     500: { description: 'Erro no servidor' },
@@ -179,10 +194,17 @@ const UsuarioRemovido = z
 registry.registerPath({
   method: 'delete',
   path: '/usuarios/remover',
-  summary: 'Remover usuário (Firebase Auth) por id',
+  summary:
+    'Remover a própria conta no Firebase Auth (requer Authorization: Bearer; `id` = UID do token)',
   tags: ['Usuários'],
   request: {
     query: schemaQueryIdUsuario,
+    headers: z.object({
+      authorization: z.string().openapi({
+        description: 'Bearer <idToken> — JWT do Firebase Auth',
+        example: 'Bearer eyJhbGciOiJSUzI1NiIs...',
+      }),
+    }),
   },
   responses: {
     200: {
@@ -192,6 +214,14 @@ registry.registerPath({
     400: {
       description: 'Validação',
       content: { 'application/json': { schema: ErroValidacao } },
+    },
+    401: {
+      description: 'Token ausente ou inválido',
+      content: { 'application/json': { schema: ErroSimples } },
+    },
+    403: {
+      description: '`id` diferente do utilizador autenticado',
+      content: { 'application/json': { schema: ErroSimples } },
     },
     404: { description: 'Usuário não encontrado' },
     503: { description: 'Serviço indisponível' },
@@ -229,10 +259,17 @@ registry.registerPath({
 registry.registerPath({
   method: 'get',
   path: '/medidas/ler',
-  summary: 'Ler medida por id',
+  summary:
+    'Ler medida por id (requer Authorization: Bearer; só devolve se for do utilizador)',
   tags: ['Medidas'],
   request: {
     query: schemaQueryIdMedida,
+    headers: z.object({
+      authorization: z.string().openapi({
+        description: 'Bearer <idToken> — JWT do Firebase Auth',
+        example: 'Bearer eyJhbGciOiJSUzI1NiIs...',
+      }),
+    }),
   },
   responses: {
     200: {
@@ -243,12 +280,16 @@ registry.registerPath({
       description: 'Validação',
       content: { 'application/json': { schema: ErroValidacao } },
     },
+    401: {
+      description: 'Token ausente ou inválido',
+      content: { 'application/json': { schema: ErroSimples } },
+    },
     404: {
-      description: 'Não encontrada',
+      description: 'Não encontrada ou não pertence ao utilizador',
       content: { 'application/json': { schema: ErroSimples } },
     },
     503: {
-      description: 'Firestore indisponível',
+      description: 'Firestore ou Auth indisponível',
       content: { 'application/json': { schema: ErroSimples } },
     },
   },
@@ -257,15 +298,28 @@ registry.registerPath({
 registry.registerPath({
   method: 'get',
   path: '/medidas/ler-todas',
-  summary: 'Listar medidas',
+  summary:
+    'Listar medidas do utilizador autenticado (requer Authorization: Bearer com idToken Firebase)',
   tags: ['Medidas'],
+  request: {
+    headers: z.object({
+      authorization: z.string().openapi({
+        description: 'Bearer <idToken> — JWT do Firebase Auth',
+        example: 'Bearer eyJhbGciOiJSUzI1NiIs...',
+      }),
+    }),
+  },
   responses: {
     200: {
-      description: 'Lista',
+      description: 'Lista das medidas do utilizador',
       content: { 'application/json': { schema: ListaMedidasResumo } },
     },
+    401: {
+      description: 'Token ausente ou inválido',
+      content: { 'application/json': { schema: ErroSimples } },
+    },
     503: {
-      description: 'Firestore indisponível',
+      description: 'Firestore ou Auth indisponível',
       content: { 'application/json': { schema: ErroSimples } },
     },
   },
@@ -274,9 +328,16 @@ registry.registerPath({
 registry.registerPath({
   method: 'post',
   path: '/medidas/criar',
-  summary: 'Criar medida',
+  summary:
+    'Criar medida (requer Authorization: Bearer com idToken Firebase; grava userId)',
   tags: ['Medidas'],
   request: {
+    headers: z.object({
+      authorization: z.string().openapi({
+        description: 'Bearer <idToken> — JWT do Firebase Auth',
+        example: 'Bearer eyJhbGciOiJSUzI1NiIs...',
+      }),
+    }),
     body: {
       content: {
         'application/json': { schema: schemaMedidaCriar },
@@ -292,8 +353,12 @@ registry.registerPath({
       description: 'Validação',
       content: { 'application/json': { schema: ErroValidacao } },
     },
+    401: {
+      description: 'Token ausente ou inválido',
+      content: { 'application/json': { schema: ErroSimples } },
+    },
     503: {
-      description: 'Firestore indisponível',
+      description: 'Firestore ou Auth indisponível',
       content: { 'application/json': { schema: ErroSimples } },
     },
   },
@@ -302,9 +367,16 @@ registry.registerPath({
 registry.registerPath({
   method: 'put',
   path: '/medidas/atualizar',
-  summary: 'Atualizar medida',
+  summary:
+    'Atualizar medida (requer Authorization: Bearer; só se for do utilizador)',
   tags: ['Medidas'],
   request: {
+    headers: z.object({
+      authorization: z.string().openapi({
+        description: 'Bearer <idToken> — JWT do Firebase Auth',
+        example: 'Bearer eyJhbGciOiJSUzI1NiIs...',
+      }),
+    }),
     body: {
       content: {
         'application/json': { schema: schemaMedidaAtualizar },
@@ -320,12 +392,16 @@ registry.registerPath({
       description: 'Validação ou nenhum campo para atualizar',
       content: { 'application/json': { schema: ErroValidacao } },
     },
+    401: {
+      description: 'Token ausente ou inválido',
+      content: { 'application/json': { schema: ErroSimples } },
+    },
     404: {
-      description: 'Não encontrada',
+      description: 'Não encontrada ou não pertence ao utilizador',
       content: { 'application/json': { schema: ErroSimples } },
     },
     503: {
-      description: 'Firestore indisponível',
+      description: 'Firestore ou Auth indisponível',
       content: { 'application/json': { schema: ErroSimples } },
     },
   },

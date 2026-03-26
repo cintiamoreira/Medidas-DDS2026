@@ -1,3 +1,5 @@
+import { getAuthorizationBearerHeaders } from "./authSessao";
+
 export interface TypeFormCriarConta {
   email: string;
   senha: string;
@@ -35,8 +37,10 @@ export interface TypePostFormMedida {
 export type TypeMedida = TypeMedidaLista & TypePostFormMedida;
 
 export const getMedidas = async () => {
+  const auth = await getAuthorizationBearerHeaders();
   const resposta = await fetch(
     process.env.NEXT_PUBLIC_BACKEND_URL + BASE_ROTA + "/ler-todas",
+    { headers: { ...auth } },
   );
   const dado = (await resposta.json()) as TypePostFormMedida[];
   console.log({ dado });
@@ -53,6 +57,7 @@ export const postMedidaCriar = async (
   console.log(dadosStringify);
 
   try {
+    const auth = await getAuthorizationBearerHeaders();
     const resposta = await fetch(
       process.env.NEXT_PUBLIC_BACKEND_URL + BASE_ROTA + "/criar",
       {
@@ -60,6 +65,7 @@ export const postMedidaCriar = async (
         body: dadosStringify,
         headers: {
           "content-type": "application/json",
+          ...auth,
         },
       },
     );
@@ -75,8 +81,10 @@ export const postMedidaCriar = async (
 };
 
 export const getMedidaPorId = async (id: string) => {
+  const auth = await getAuthorizationBearerHeaders();
   const resposta = await fetch(
     process.env.NEXT_PUBLIC_BACKEND_URL + BASE_ROTA + "/ler?id=" + id,
+    { headers: { ...auth } },
   );
   const dado = (await resposta.json()) as TypeMedida;
   console.log({ dado });
@@ -87,11 +95,15 @@ export const putMedidaAtualizar = async (
   id: string,
   dados: TypePostFormMedida,
 ) => {
+  const auth = await getAuthorizationBearerHeaders();
   const resposta = await fetch(
     process.env.NEXT_PUBLIC_BACKEND_URL + BASE_ROTA + "/atualizar",
     {
       method: "PUT",
-      headers: { "content-type": "application/json" },
+      headers: {
+        "content-type": "application/json",
+        ...auth,
+      },
       body: JSON.stringify({ id, ...dados }),
     },
   );
