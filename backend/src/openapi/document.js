@@ -274,9 +274,16 @@ registry.registerPath({
 registry.registerPath({
   method: 'post',
   path: '/medidas/criar',
-  summary: 'Criar medida',
+  summary:
+    'Criar medida (requer Authorization: Bearer com idToken Firebase; grava userId)',
   tags: ['Medidas'],
   request: {
+    headers: z.object({
+      authorization: z.string().openapi({
+        description: 'Bearer <idToken> — JWT do Firebase Auth',
+        example: 'Bearer eyJhbGciOiJSUzI1NiIs...',
+      }),
+    }),
     body: {
       content: {
         'application/json': { schema: schemaMedidaCriar },
@@ -292,8 +299,12 @@ registry.registerPath({
       description: 'Validação',
       content: { 'application/json': { schema: ErroValidacao } },
     },
+    401: {
+      description: 'Token ausente ou inválido',
+      content: { 'application/json': { schema: ErroSimples } },
+    },
     503: {
-      description: 'Firestore indisponível',
+      description: 'Firestore ou Auth indisponível',
       content: { 'application/json': { schema: ErroSimples } },
     },
   },

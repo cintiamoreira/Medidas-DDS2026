@@ -1,5 +1,6 @@
 import express from 'express';
 import { db } from '../config/firebase.js';
+import { verificarUidDoIdToken } from '../helpers/authBearer.js';
 import { validarEExecutar } from '../helpers/validacao.js';
 import {
   schemaMedidaAtualizar,
@@ -58,29 +59,31 @@ routerMedidas.get('/ler-todas', async (req, res) => {
   }
 });
 
-routerMedidas.post(
-  '/criar',
-  validarEExecutar({
-    schema: schemaMedidaCriar,
-    obterDados: (req) => req.body ?? {},
-    executar: async (data, req, res) => {
-      console.log('POST /criar');
-      if (!db) {
-        return res.status(503).json({ error: 'Firestore não disponível' });
-      }
-      try {
-        const ref = await db.collection('medidas').add({
-          ...data,
-          createdAt: new Date(),
-        });
-        res.status(201).json({ id: ref.id, message: 'Medida criada' });
-      } catch (erro) {
-        console.error('Erro ao criar medida:', erro);
-        res.status(500).json({ error: 'Erro ao criar medida' });
-      }
-    },
-  })
-);
+routerMedidas.post('/criar', async (req, res) => {
+  console.log('POST /criar');
+  const authResult = await verificarUidDoIdToken(req);
+  if (authResult.ok === false) {
+    return res.status(authResult.status).json({ error: authResult.error });
+  }
+  if (!db) {
+    return res.status(503).json({ error: 'Firestore não disponível' });
+  }
+  const parsed = schemaMedidaCriar.safeParse(req.body ?? {});
+  if (!parsed.success) {
+    return res.status(400).json({ error: 'erro de validação de dados' });
+  }
+  try {
+    const ref = await db.collection('medidas').add({
+      ...parsed.data,
+      userId: authResult.uid,
+      createdAt: new Date(),
+    });
+    res.status(201).json({ id: ref.id, message: 'Medida criada' });
+  } catch (erro) {
+    console.error('Erro ao criar medida:', erro);
+    res.status(500).json({ error: 'Erro ao criar medida' });
+  }
+});
 
 routerMedidas.put(
   '/atualizar',
