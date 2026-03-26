@@ -257,15 +257,28 @@ registry.registerPath({
 registry.registerPath({
   method: 'get',
   path: '/medidas/ler-todas',
-  summary: 'Listar medidas',
+  summary:
+    'Listar medidas do utilizador autenticado (requer Authorization: Bearer com idToken Firebase)',
   tags: ['Medidas'],
+  request: {
+    headers: z.object({
+      authorization: z.string().openapi({
+        description: 'Bearer <idToken> — JWT do Firebase Auth',
+        example: 'Bearer eyJhbGciOiJSUzI1NiIs...',
+      }),
+    }),
+  },
   responses: {
     200: {
-      description: 'Lista',
+      description: 'Lista das medidas do utilizador',
       content: { 'application/json': { schema: ListaMedidasResumo } },
     },
+    401: {
+      description: 'Token ausente ou inválido',
+      content: { 'application/json': { schema: ErroSimples } },
+    },
     503: {
-      description: 'Firestore indisponível',
+      description: 'Firestore ou Auth indisponível',
       content: { 'application/json': { schema: ErroSimples } },
     },
   },

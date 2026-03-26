@@ -38,11 +38,18 @@ routerMedidas.get(
 
 routerMedidas.get('/ler-todas', async (req, res) => {
   console.log('GET /ler-todas');
+  const authResult = await verificarUidDoIdToken(req);
+  if (authResult.ok === false) {
+    return res.status(authResult.status).json({ error: authResult.error });
+  }
   if (!dbFirebase) {
     return res.status(503).json({ error: 'Firestore não disponível' });
   }
   try {
-    const snapshot = await dbFirebase.collection('medidas').get();
+    const snapshot = await dbFirebase
+      .collection('medidas')
+      .where('userId', '==', authResult.uid)
+      .get();
     const medidas = snapshot.docs.map((doc) => {
       const data = doc.data();
       return {

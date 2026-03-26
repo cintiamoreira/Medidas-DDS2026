@@ -37,8 +37,10 @@ export interface TypePostFormMedida {
 export type TypeMedida = TypeMedidaLista & TypePostFormMedida;
 
 export const getMedidas = async () => {
+  const auth = await getAuthorizationBearerHeaders();
   const resposta = await fetch(
     process.env.NEXT_PUBLIC_BACKEND_URL + BASE_ROTA + "/ler-todas",
+    { headers: { ...auth } },
   );
   const dado = (await resposta.json()) as TypePostFormMedida[];
   console.log({ dado });
