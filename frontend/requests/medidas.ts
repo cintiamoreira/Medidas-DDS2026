@@ -95,11 +95,15 @@ export const putMedidaAtualizar = async (
   id: string,
   dados: TypePostFormMedida,
 ) => {
+  const auth = await getAuthorizationBearerHeaders();
   const resposta = await fetch(
     process.env.NEXT_PUBLIC_BACKEND_URL + BASE_ROTA + "/atualizar",
     {
       method: "PUT",
-      headers: { "content-type": "application/json" },
+      headers: {
+        "content-type": "application/json",
+        ...auth,
+      },
       body: JSON.stringify({ id, ...dados }),
     },
   );

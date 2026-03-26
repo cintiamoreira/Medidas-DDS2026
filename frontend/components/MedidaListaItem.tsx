@@ -38,6 +38,12 @@ const MedidaListaItem = (props: MedidaListaItemProps) => {
               {medida.idade} anos
             </span>
           </div>
+          <p
+            className="text-xs text-zinc-400 dark:text-zinc-500"
+            title="ID do documento"
+          >
+            ID: {medida.id ?? "—"}
+          </p>
         </div>
       </div>
     </article>

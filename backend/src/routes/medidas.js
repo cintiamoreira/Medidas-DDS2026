@@ -107,6 +107,10 @@ routerMedidas.put(
     obterDados: (req) => req.body ?? {},
     executar: async (data, req, res) => {
       console.log('PUT /atualizar');
+      const authResult = await verificarUidDoIdToken(req);
+      if (authResult.ok === false) {
+        return res.status(authResult.status).json({ error: authResult.error });
+      }
       const { id, ...rest } = data;
       const camposAtualizaveis = Object.fromEntries(
         Object.entries(rest).filter(([, v]) => v !== undefined)
@@ -123,6 +127,10 @@ routerMedidas.put(
         const docRef = dbFirebase.collection('medidas').doc(id);
         const doc = await docRef.get();
         if (!doc.exists) {
+          return res.status(404).json({ error: 'Medida não encontrada' });
+        }
+        const docData = doc.data();
+        if (docData?.userId !== authResult.uid) {
           return res.status(404).json({ error: 'Medida não encontrada' });
         }
         await docRef.update(camposAtualizaveis);

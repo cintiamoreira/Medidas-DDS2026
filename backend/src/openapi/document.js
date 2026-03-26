@@ -337,9 +337,16 @@ registry.registerPath({
 registry.registerPath({
   method: 'put',
   path: '/medidas/atualizar',
-  summary: 'Atualizar medida',
+  summary:
+    'Atualizar medida (requer Authorization: Bearer; só se for do utilizador)',
   tags: ['Medidas'],
   request: {
+    headers: z.object({
+      authorization: z.string().openapi({
+        description: 'Bearer <idToken> — JWT do Firebase Auth',
+        example: 'Bearer eyJhbGciOiJSUzI1NiIs...',
+      }),
+    }),
     body: {
       content: {
         'application/json': { schema: schemaMedidaAtualizar },
@@ -355,12 +362,16 @@ registry.registerPath({
       description: 'Validação ou nenhum campo para atualizar',
       content: { 'application/json': { schema: ErroValidacao } },
     },
+    401: {
+      description: 'Token ausente ou inválido',
+      content: { 'application/json': { schema: ErroSimples } },
+    },
     404: {
-      description: 'Não encontrada',
+      description: 'Não encontrada ou não pertence ao utilizador',
       content: { 'application/json': { schema: ErroSimples } },
     },
     503: {
-      description: 'Firestore indisponível',
+      description: 'Firestore ou Auth indisponível',
       content: { 'application/json': { schema: ErroSimples } },
     },
   },
