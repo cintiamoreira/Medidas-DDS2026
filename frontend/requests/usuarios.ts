@@ -6,6 +6,8 @@ export interface TypeFormCriarConta {
   confirmarSenha: string;
 }
 
+import { getAuthorizationBearerHeaders } from "./authSessao";
+
 const BASE_ROTA = "/usuarios";
 
 /** Resposta de GET /usuarios/informacoes?id= */
@@ -38,11 +40,15 @@ export type TypeUsuarioAtualizar = {
 export async function putUsuarioAtualizar(
   dados: TypeUsuarioAtualizar,
 ): Promise<void> {
+  const auth = await getAuthorizationBearerHeaders();
   const resposta = await fetch(
     `${process.env.NEXT_PUBLIC_BACKEND_URL}${BASE_ROTA}/atualizar`,
     {
       method: "PUT",
-      headers: { "content-type": "application/json" },
+      headers: {
+        "content-type": "application/json",
+        ...auth,
+      },
       body: JSON.stringify(dados),
     },
   );
@@ -51,13 +57,17 @@ export async function putUsuarioAtualizar(
   }
 }
 
-/** DELETE /usuarios/remover?id= — remove o usuário no Firebase Auth. */
+/** DELETE /usuarios/remover?id= — remove o utilizador autenticado no Firebase Auth. */
 export async function deleteUsuarioRemover(userId: string): Promise<void> {
+  const auth = await getAuthorizationBearerHeaders();
   const url = new URL(
     `${process.env.NEXT_PUBLIC_BACKEND_URL}${BASE_ROTA}/remover`,
   );
   url.searchParams.set("id", userId);
-  const resposta = await fetch(url.toString(), { method: "DELETE" });
+  const resposta = await fetch(url.toString(), {
+    method: "DELETE",
+    headers: { ...auth },
+  });
   if (!resposta.ok) {
     throw new Error("Não foi possível excluir a conta.");
   }

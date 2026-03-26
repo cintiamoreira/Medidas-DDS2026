@@ -1,5 +1,6 @@
 import express from 'express';
 import { authFirebase } from '../config/firebase.js';
+import { verificarUidDoIdToken } from '../helpers/authBearer.js';
 import { validarEExecutar } from '../helpers/validacao.js';
 import {
   schemaQueryIdUsuario,
@@ -93,7 +94,16 @@ routerUsuarios.put(
     schema: schemaUsuarioAtualizar,
     obterDados: (req) => req.body ?? {},
     executar: async (data, req, res) => {
+      const authResult = await verificarUidDoIdToken(req);
+      if (authResult.ok === false) {
+        return res.status(authResult.status).json({ error: authResult.error });
+      }
       const { id, nome } = data;
+      if (id !== authResult.uid) {
+        return res.status(403).json({
+          error: 'Não é possível atualizar o perfil de outro utilizador',
+        });
+      }
       if (!authFirebase) {
         return res.status(503).json({ error: 'Autenticação não disponível' });
       }
@@ -142,7 +152,16 @@ routerUsuarios.delete(
     schema: schemaQueryIdUsuario,
     obterDados: (req) => normalizarQueryId(req.query),
     executar: async (data, req, res) => {
+      const authResult = await verificarUidDoIdToken(req);
+      if (authResult.ok === false) {
+        return res.status(authResult.status).json({ error: authResult.error });
+      }
       const { id } = data;
+      if (id !== authResult.uid) {
+        return res.status(403).json({
+          error: 'Não é possível remover a conta de outro utilizador',
+        });
+      }
       if (!authFirebase) {
         return res.status(503).json({ error: 'Autenticação não disponível' });
       }

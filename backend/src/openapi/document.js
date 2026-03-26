@@ -123,9 +123,16 @@ const UsuarioAtualizado = z
 registry.registerPath({
   method: 'put',
   path: '/usuarios/atualizar',
-  summary: 'Atualizar nome (displayName) do usuário',
+  summary:
+    'Atualizar nome (displayName) do próprio utilizador (requer Authorization: Bearer; `id` = UID do token)',
   tags: ['Usuários'],
   request: {
+    headers: z.object({
+      authorization: z.string().openapi({
+        description: 'Bearer <idToken> — JWT do Firebase Auth',
+        example: 'Bearer eyJhbGciOiJSUzI1NiIs...',
+      }),
+    }),
     body: {
       content: {
         'application/json': { schema: schemaUsuarioAtualizar },
@@ -140,6 +147,14 @@ registry.registerPath({
     400: {
       description: 'Validação',
       content: { 'application/json': { schema: ErroValidacao } },
+    },
+    401: {
+      description: 'Token ausente ou inválido',
+      content: { 'application/json': { schema: ErroSimples } },
+    },
+    403: {
+      description: '`id` diferente do utilizador autenticado',
+      content: { 'application/json': { schema: ErroSimples } },
     },
     404: { description: 'Usuário não encontrado' },
     500: { description: 'Erro no servidor' },
@@ -179,10 +194,17 @@ const UsuarioRemovido = z
 registry.registerPath({
   method: 'delete',
   path: '/usuarios/remover',
-  summary: 'Remover usuário (Firebase Auth) por id',
+  summary:
+    'Remover a própria conta no Firebase Auth (requer Authorization: Bearer; `id` = UID do token)',
   tags: ['Usuários'],
   request: {
     query: schemaQueryIdUsuario,
+    headers: z.object({
+      authorization: z.string().openapi({
+        description: 'Bearer <idToken> — JWT do Firebase Auth',
+        example: 'Bearer eyJhbGciOiJSUzI1NiIs...',
+      }),
+    }),
   },
   responses: {
     200: {
@@ -192,6 +214,14 @@ registry.registerPath({
     400: {
       description: 'Validação',
       content: { 'application/json': { schema: ErroValidacao } },
+    },
+    401: {
+      description: 'Token ausente ou inválido',
+      content: { 'application/json': { schema: ErroSimples } },
+    },
+    403: {
+      description: '`id` diferente do utilizador autenticado',
+      content: { 'application/json': { schema: ErroSimples } },
     },
     404: { description: 'Usuário não encontrado' },
     503: { description: 'Serviço indisponível' },
