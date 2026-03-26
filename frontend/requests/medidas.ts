@@ -81,8 +81,10 @@ export const postMedidaCriar = async (
 };
 
 export const getMedidaPorId = async (id: string) => {
+  const auth = await getAuthorizationBearerHeaders();
   const resposta = await fetch(
     process.env.NEXT_PUBLIC_BACKEND_URL + BASE_ROTA + "/ler?id=" + id,
+    { headers: { ...auth } },
   );
   const dado = (await resposta.json()) as TypeMedida;
   console.log({ dado });

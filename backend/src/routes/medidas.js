@@ -17,6 +17,10 @@ routerMedidas.get(
     schema: schemaQueryIdMedida,
     obterDados: (req) => normalizarQueryId(req.query),
     executar: async (data, req, res) => {
+      const authResult = await verificarUidDoIdToken(req);
+      if (authResult.ok === false) {
+        return res.status(authResult.status).json({ error: authResult.error });
+      }
       const { id } = data;
       if (!dbFirebase) {
         return res.status(503).json({ error: 'Firestore não disponível' });
@@ -27,7 +31,11 @@ routerMedidas.get(
         if (!doc.exists) {
           return res.status(404).json({ error: 'Medida não encontrada' });
         }
-        res.status(200).json({ id: doc.id, ...doc.data() });
+        const docData = doc.data();
+        if (docData?.userId !== authResult.uid) {
+          return res.status(404).json({ error: 'Medida não encontrada' });
+        }
+        res.status(200).json({ id: doc.id, ...docData });
       } catch (erro) {
         console.error('Erro ao ler medida:', erro);
         res.status(500).json({ error: 'Erro ao ler medida' });

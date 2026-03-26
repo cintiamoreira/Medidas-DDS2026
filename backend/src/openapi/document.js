@@ -229,10 +229,17 @@ registry.registerPath({
 registry.registerPath({
   method: 'get',
   path: '/medidas/ler',
-  summary: 'Ler medida por id',
+  summary:
+    'Ler medida por id (requer Authorization: Bearer; só devolve se for do utilizador)',
   tags: ['Medidas'],
   request: {
     query: schemaQueryIdMedida,
+    headers: z.object({
+      authorization: z.string().openapi({
+        description: 'Bearer <idToken> — JWT do Firebase Auth',
+        example: 'Bearer eyJhbGciOiJSUzI1NiIs...',
+      }),
+    }),
   },
   responses: {
     200: {
@@ -243,12 +250,16 @@ registry.registerPath({
       description: 'Validação',
       content: { 'application/json': { schema: ErroValidacao } },
     },
+    401: {
+      description: 'Token ausente ou inválido',
+      content: { 'application/json': { schema: ErroSimples } },
+    },
     404: {
-      description: 'Não encontrada',
+      description: 'Não encontrada ou não pertence ao utilizador',
       content: { 'application/json': { schema: ErroSimples } },
     },
     503: {
-      description: 'Firestore indisponível',
+      description: 'Firestore ou Auth indisponível',
       content: { 'application/json': { schema: ErroSimples } },
     },
   },
