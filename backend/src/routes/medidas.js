@@ -1,5 +1,5 @@
 import express from 'express';
-import { db } from '../config/firebase.js';
+import { dbFirebase } from '../config/firebase.js';
 import { verificarUidDoIdToken } from '../helpers/authBearer.js';
 import { validarEExecutar } from '../helpers/validacao.js';
 import {
@@ -18,11 +18,11 @@ routerMedidas.get(
     obterDados: (req) => normalizarQueryId(req.query),
     executar: async (data, req, res) => {
       const { id } = data;
-      if (!db) {
+      if (!dbFirebase) {
         return res.status(503).json({ error: 'Firestore não disponível' });
       }
       try {
-        const docRef = db.collection('medidas').doc(id);
+        const docRef = dbFirebase.collection('medidas').doc(id);
         const doc = await docRef.get();
         if (!doc.exists) {
           return res.status(404).json({ error: 'Medida não encontrada' });
@@ -38,11 +38,11 @@ routerMedidas.get(
 
 routerMedidas.get('/ler-todas', async (req, res) => {
   console.log('GET /ler-todas');
-  if (!db) {
+  if (!dbFirebase) {
     return res.status(503).json({ error: 'Firestore não disponível' });
   }
   try {
-    const snapshot = await db.collection('medidas').get();
+    const snapshot = await dbFirebase.collection('medidas').get();
     const medidas = snapshot.docs.map((doc) => {
       const data = doc.data();
       return {
@@ -65,7 +65,7 @@ routerMedidas.post('/criar', async (req, res) => {
   if (authResult.ok === false) {
     return res.status(authResult.status).json({ error: authResult.error });
   }
-  if (!db) {
+  if (!dbFirebase) {
     return res.status(503).json({ error: 'Firestore não disponível' });
   }
   const parsed = schemaMedidaCriar.safeParse(req.body ?? {});
@@ -73,7 +73,7 @@ routerMedidas.post('/criar', async (req, res) => {
     return res.status(400).json({ error: 'erro de validação de dados' });
   }
   try {
-    const ref = await db.collection('medidas').add({
+    const ref = await dbFirebase.collection('medidas').add({
       ...parsed.data,
       userId: authResult.uid,
       createdAt: new Date(),
@@ -101,11 +101,11 @@ routerMedidas.put(
           error: 'Informe ao menos um campo numérico para atualizar além do id',
         });
       }
-      if (!db) {
+      if (!dbFirebase) {
         return res.status(503).json({ error: 'Firestore não disponível' });
       }
       try {
-        const docRef = db.collection('medidas').doc(id);
+        const docRef = dbFirebase.collection('medidas').doc(id);
         const doc = await docRef.get();
         if (!doc.exists) {
           return res.status(404).json({ error: 'Medida não encontrada' });
@@ -127,11 +127,11 @@ routerMedidas.delete(
     obterDados: (req) => normalizarQueryId(req.query),
     executar: async (data, req, res) => {
       const { id } = data;
-      if (!db) {
+      if (!dbFirebase) {
         return res.status(503).json({ error: 'Firestore não disponível' });
       }
       try {
-        const docRef = db.collection('medidas').doc(id);
+        const docRef = dbFirebase.collection('medidas').doc(id);
         const doc = await docRef.get();
         if (!doc.exists) {
           return res.status(404).json({ error: 'Medida não encontrada' });

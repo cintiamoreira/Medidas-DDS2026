@@ -19,5 +19,5 @@ try {
   console.error('Erro ao iniciar o firebase:', e.message);
 }
 
-export const db = app ? admin.firestore() : null;
-export const auth = app ? admin.auth() : null;
+export const dbFirebase = app ? admin.firestore() : null;
+export const authFirebase = app ? admin.auth() : null;

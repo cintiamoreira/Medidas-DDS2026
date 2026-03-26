@@ -1,3 +1,5 @@
+import { getAuthorizationBearerHeaders } from "./authSessao";
+
 export interface TypeFormCriarConta {
   email: string;
   senha: string;
@@ -53,6 +55,7 @@ export const postMedidaCriar = async (
   console.log(dadosStringify);
 
   try {
+    const auth = await getAuthorizationBearerHeaders();
     const resposta = await fetch(
       process.env.NEXT_PUBLIC_BACKEND_URL + BASE_ROTA + "/criar",
       {
@@ -60,6 +63,7 @@ export const postMedidaCriar = async (
         body: dadosStringify,
         headers: {
           "content-type": "application/json",
+          ...auth,
         },
       },
     );

@@ -1,5 +1,5 @@
 import express from 'express';
-import { auth } from '../config/firebase.js';
+import { authFirebase } from '../config/firebase.js';
 import { validarEExecutar } from '../helpers/validacao.js';
 import {
   schemaQueryIdUsuario,
@@ -20,7 +20,7 @@ routerUsuarios.post(
       console.log('POST /criar-conta');
       const { email, senha, nome } = data;
       try {
-        await auth.createUser({
+        await authFirebase.createUser({
           email,
           password: senha,
           displayName: nome,
@@ -94,11 +94,11 @@ routerUsuarios.put(
     obterDados: (req) => req.body ?? {},
     executar: async (data, req, res) => {
       const { id, nome } = data;
-      if (!auth) {
+      if (!authFirebase) {
         return res.status(503).json({ error: 'Autenticação não disponível' });
       }
       try {
-        await auth.updateUser(id, { displayName: nome });
+        await authFirebase.updateUser(id, { displayName: nome });
         res.status(200).json({ id, message: 'Usuário atualizado' });
       } catch (erro) {
         if (erro?.code === 'auth/user-not-found') {
@@ -119,7 +119,7 @@ routerUsuarios.get(
     executar: async (data, req, res) => {
       const { id } = data;
       try {
-        const userRecord = await auth.getUser(id);
+        const userRecord = await authFirebase.getUser(id);
         res.status(200).json({
           email: userRecord.email ?? null,
           nome: userRecord.displayName ?? null,
@@ -143,11 +143,11 @@ routerUsuarios.delete(
     obterDados: (req) => normalizarQueryId(req.query),
     executar: async (data, req, res) => {
       const { id } = data;
-      if (!auth) {
+      if (!authFirebase) {
         return res.status(503).json({ error: 'Autenticação não disponível' });
       }
       try {
-        await auth.deleteUser(id);
+        await authFirebase.deleteUser(id);
         res.status(200).json({ id, message: 'Usuário removido' });
       } catch (erro) {
         if (erro?.code === 'auth/user-not-found') {

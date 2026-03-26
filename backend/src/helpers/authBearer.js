@@ -1,4 +1,4 @@
-import { auth } from '../config/firebase.js';
+import { authFirebase } from '../config/firebase.js';
 
 /**
  * Lê o JWT do header `Authorization: Bearer <token>`.
@@ -16,7 +16,7 @@ export function extrairBearerToken(req) {
  * @returns {Promise<{ ok: true, uid: string } | { ok: false, status: number, error: string }>}
  */
 export async function verificarUidDoIdToken(req) {
-  if (!auth) {
+  if (!authFirebase) {
     return {
       ok: false,
       status: 503,
@@ -32,7 +32,8 @@ export async function verificarUidDoIdToken(req) {
     };
   }
   try {
-    const decoded = await auth.verifyIdToken(token);
+    const decoded = await authFirebase.verifyIdToken(token);
+
     return { ok: true, uid: decoded.uid };
   } catch {
     return {
