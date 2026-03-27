@@ -33,6 +33,8 @@ O projeto usa [`next/font`](https://nextjs.org/docs/app/building-your-applicatio
    - **`VERCEL_ORG_ID`** — igual ao campo **`orgId`** em `frontend/.vercel/project.json` (depois do `vercel link`).
    - **`VERCEL_PROJECT_ID`** — igual ao campo **`projectId`** em `frontend/.vercel/project.json`.
 
+   O workflow faz deploy **só para produção** (`vercel --prod`); execute-o manualmente em **Actions → Run workflow**.
+
 5. **Docker** (build e execução da imagem local): na pasta **`frontend`**, com o Docker em execução:
    - **Build:** `npm run docker-build` (equivale a `docker build -t medidas-frontend .`). O `Dockerfile` usa por padrão `NEXT_PUBLIC_BACKEND_URL=http://localhost:4020` no build (adequado se o backend estiver na sua máquina nessa porta). Para outro URL no build:  
      `docker build --build-arg NEXT_PUBLIC_BACKEND_URL=https://exemplo.com -t medidas-frontend .`
