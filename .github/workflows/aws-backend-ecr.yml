@@ -1,0 +1,47 @@
+# Build da imagem Docker do backend e push para Amazon ECR (mesmo fluxo que npm run deploy-aws).
+# Execução manual: Actions → Run workflow.
+name: AWS — backend (ECR)
+
+on:
+  workflow_dispatch:
+
+# Definir em Settings → Secrets and variables → Actions → Variables
+env:
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
+  IMAGE_TAG: ${{ vars.IMAGE_TAG }}
+
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar credenciais AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login no Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build da imagem
+        run: docker build -t backend-api .
+
+      - name: Tag da imagem
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: docker tag backend-api:latest $REGISTRY/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+
+      - name: Push para o ECR
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: docker push $REGISTRY/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
