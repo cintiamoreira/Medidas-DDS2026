@@ -1,12 +1,8 @@
-import { getAuthorizationBearerHeaders } from "@/helpers/usuariosHelper";
-
 export interface TypeFormCriarConta {
   email: string;
   senha: string;
   confirmarSenha: string;
 }
-
-const BASE_ROTA = "/medidas";
 
 export type FirestoreTimestamp = {
   _seconds: number;
@@ -35,25 +31,3 @@ export interface TypePostFormMedida {
 }
 
 export type TypeMedida = TypeMedidaLista & TypePostFormMedida;
-
-export const getMedidas = async () => {
-  const auth = await getAuthorizationBearerHeaders();
-  const resposta = await fetch(
-    process.env.NEXT_PUBLIC_BACKEND_URL + BASE_ROTA + "/ler-todas",
-    { headers: { ...auth } },
-  );
-  const dado = (await resposta.json()) as TypePostFormMedida[];
-  console.log({ dado });
-  return dado;
-};
-
-export const getMedidaPorId = async (id: string) => {
-  const auth = await getAuthorizationBearerHeaders();
-  const resposta = await fetch(
-    process.env.NEXT_PUBLIC_BACKEND_URL + BASE_ROTA + "/ler?id=" + id,
-    { headers: { ...auth } },
-  );
-  const dado = (await resposta.json()) as TypeMedida;
-  console.log({ dado });
-  return dado;
-};

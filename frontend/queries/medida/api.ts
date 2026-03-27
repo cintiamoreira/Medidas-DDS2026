@@ -3,8 +3,15 @@ import {
   MENSAGEM_ERRO_PADRAO,
   lerMensagemErroResposta,
 } from "@/helpers/respostaErro";
-import { lerRespostaSucessoComIdEMensagem } from "@/helpers/respostaSucesso";
-import type { TypePostFormMedida } from "@/requests/medidas";
+import {
+  lerCorpoJsonResposta,
+  lerRespostaSucessoComIdEMensagem,
+} from "@/helpers/respostaSucesso";
+import type {
+  TypeMedida,
+  TypeMedidaLista,
+  TypePostFormMedida,
+} from "@/requests/medidas";
 import type {
   TypeMedidaAtualizarResposta,
   TypeMedidaAtualizarVariaveis,
@@ -76,6 +83,48 @@ export async function putMedidaAtualizarApi(
     id,
     MENSAGEM_SUCESSO_ATUALIZAR_MEDIDA,
   );
+}
+
+/**
+ * Lista medidas do utilizador via `GET /medidas/ler-todas` (Bearer obrigatório).
+ */
+export async function getMedidasLerTodasApi(): Promise<TypeMedidaLista[]> {
+  const auth = await getAuthorizationBearerHeaders();
+  const resposta = await fetch(
+    `${process.env.NEXT_PUBLIC_BACKEND_URL}${BASE_ROTA}/ler-todas`,
+    { headers: { ...auth } },
+  );
+  if (!resposta.ok) {
+    throw new Error(
+      await lerMensagemErroResposta(resposta, MENSAGEM_ERRO_PADRAO),
+    );
+  }
+  const corpo = await lerCorpoJsonResposta(resposta);
+  if (corpo === null) {
+    throw new Error(MENSAGEM_ERRO_PADRAO);
+  }
+  return corpo as TypeMedidaLista[];
+}
+
+/**
+ * Obtém uma medida via `GET /medidas/ler?id=…` (Bearer obrigatório).
+ */
+export async function getMedidaPorIdApi(id: string): Promise<TypeMedida> {
+  const auth = await getAuthorizationBearerHeaders();
+  const resposta = await fetch(
+    `${process.env.NEXT_PUBLIC_BACKEND_URL}${BASE_ROTA}/ler?id=${encodeURIComponent(id)}`,
+    { headers: { ...auth } },
+  );
+  if (!resposta.ok) {
+    throw new Error(
+      await lerMensagemErroResposta(resposta, MENSAGEM_ERRO_PADRAO),
+    );
+  }
+  const corpo = await lerCorpoJsonResposta(resposta);
+  if (corpo === null) {
+    throw new Error(MENSAGEM_ERRO_PADRAO);
+  }
+  return corpo as TypeMedida;
 }
 
 /**

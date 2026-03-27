@@ -3,15 +3,14 @@ import MenuDropdown from "@/components/MenuDropdown";
 import InputTabela from "@/components/InputTabela";
 import { formatarCreatedAt } from "@/helpers/firebaseHelper";
 import {
+  medidaPorIdQueryKey,
   useDeleteMedidaRemover,
+  useMedidaPorId,
   usePutMedidaAtualizar,
 } from "@/queries/medida/query";
-import {
-  getMedidaPorId,
-  TypeMedida,
-  TypePostFormMedida,
-} from "@/requests/medidas";
+import { TypeMedida, TypePostFormMedida } from "@/requests/medidas";
 import { temSessaoCookie } from "@/helpers/usuariosHelper";
+import { useQueryClient } from "@tanstack/react-query";
 import { Pencil, Trash2 } from "lucide-react";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -53,12 +52,20 @@ const CAMPOS: {
 export default function MedidaDetalhe() {
   const router = useRouter();
   const { medidaId } = router.query;
+  const queryClient = useQueryClient();
 
-  const [medida, setMedida] = useState<TypeMedida | null>(null);
+  const [sessaoOk, setSessaoOk] = useState(false);
   const [editando, setEditando] = useState(false);
   const [formValues, setFormValues] = useState<TypeMedida | null>(null);
   const atualizarMedidaMutation = usePutMedidaAtualizar();
   const removerMedidaMutation = useDeleteMedidaRemover();
+
+  const medidaIdStr = typeof medidaId === "string" ? medidaId : null;
+  const medidaQuery = useMedidaPorId({
+    id: medidaIdStr,
+    enabled: sessaoOk && medidaIdStr !== null,
+  });
+  const medida = medidaQuery.data ?? null;
 
   useEffect(() => {
     let ativo = true;
@@ -67,17 +74,12 @@ export default function MedidaDetalhe() {
         if (ativo) await router.replace("/login");
         return;
       }
-      if (typeof medidaId !== "string") return;
-      const dados = await getMedidaPorId(medidaId);
-      if (ativo) {
-        setMedida(dados);
-        setFormValues(dados);
-      }
+      if (ativo) setSessaoOk(true);
     })();
     return () => {
       ativo = false;
     };
-  }, [router, medidaId]);
+  }, [router]);
 
   const handleDeletar = () => {
     if (typeof medidaId !== "string" || removerMedidaMutation.isPending) return;
@@ -97,7 +99,12 @@ export default function MedidaDetalhe() {
       label: "Editar",
       tom: "primario" as const,
       icone: <Pencil aria-hidden />,
-      onClick: () => setEditando(true),
+      onClick: () => {
+        if (medida) {
+          setFormValues(medida);
+          setEditando(true);
+        }
+      },
     },
     {
       label: "Deletar",
@@ -129,25 +136,58 @@ export default function MedidaDetalhe() {
       { id: medidaId, dados },
       {
         onSuccess: async () => {
-          const dadosAtualizados = await getMedidaPorId(medidaId);
-          setMedida(dadosAtualizados);
-          setFormValues(dadosAtualizados);
+          await queryClient.refetchQueries({
+            queryKey: medidaPorIdQueryKey(medidaId),
+          });
           setEditando(false);
+          setFormValues(null);
         },
       },
     );
   };
 
-  if (router.isFallback) {
+  const shellVazio = (
+    <div className="flex min-h-screen flex-col bg-zinc-50 dark:bg-black" />
+  );
+
+  /* Router / ID: sem “Carregando” (ainda não há pedido ao backend). */
+  if (router.isFallback || !router.isReady || !medidaIdStr) {
+    return shellVazio;
+  }
+
+  /* Sessão: redireciona para login no efeito; não confundir com fetch da medida. */
+  if (!sessaoOk) {
+    return shellVazio;
+  }
+
+  /* Só aqui a query está enabled e o GET /medidas/ler pode estar em curso. */
+  if (medidaQuery.isLoading) {
     return (
-      <p className="p-8 text-zinc-600 dark:text-zinc-400">Carregando...</p>
+      <div className="flex min-h-screen flex-col bg-zinc-50 p-8 font-sans dark:bg-black">
+        <p className="text-zinc-600 dark:text-zinc-400">Carregando...</p>
+      </div>
+    );
+  }
+
+  if (medidaQuery.isError) {
+    return (
+      <div className="flex min-h-screen flex-col bg-zinc-50 p-8 font-sans dark:bg-black">
+        <p className="p-8 text-sm font-medium text-red-600" role="alert">
+          {medidaQuery.error.message}
+        </p>
+      </div>
     );
   }
 
   if (!medida) {
     return (
       <div className="flex min-h-screen flex-col bg-zinc-50 p-8 font-sans dark:bg-black">
-        <p className="text-zinc-600 dark:text-zinc-400">Carregando...</p>
+        <p
+          className="p-8 text-sm text-zinc-600 dark:text-zinc-400"
+          role="status"
+        >
+          Não foi possível carregar a medida.
+        </p>
       </div>
     );
   }
@@ -170,7 +210,7 @@ export default function MedidaDetalhe() {
           {CAMPOS.map(({ key, label, type, format }) => {
             const somenteLeitura = sempreSomenteLeitura(key);
             const desabilitado = somenteLeitura || !editando;
-            const valorFonte = formValues ?? medida;
+            const valorFonte = editando && formValues ? formValues : medida;
             const value = valorFonte[key];
             const display =
               format && value != null
@@ -234,7 +274,7 @@ export default function MedidaDetalhe() {
                   if (atualizarMedidaMutation.isPending) return;
                   atualizarMedidaMutation.reset();
                   setEditando(false);
-                  setFormValues(medida);
+                  setFormValues(null);
                 }}
               />
             </div>
