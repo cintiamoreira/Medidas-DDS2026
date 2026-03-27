@@ -1,6 +1,6 @@
 "use client";
 
-import { temSessaoCookie } from "@/requests/usuarios";
+import { temSessaoCookie } from "@/helpers/usuariosHelper";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 

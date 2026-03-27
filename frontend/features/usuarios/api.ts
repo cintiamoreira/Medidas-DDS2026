@@ -1,15 +1,19 @@
 import { getAuthorizationBearerHeaders } from "@/requests/authSessao";
-import { MENSAGEM_ERRO_PADRAO, lerMensagemErroResposta } from "./respostaErro";
+import {
+  MENSAGEM_ERRO_PADRAO,
+  lerMensagemErroResposta,
+} from "../../helpers/respostaErro";
 import {
   lerCorpoJsonResposta,
   lerRespostaSucessoComIdEMensagem,
   lerRespostaSucessoComMensagem,
-} from "./respostaSucesso";
+} from "../../helpers/respostaSucesso";
 import type {
   TypeCriarContaCorpoApi,
   TypeCriarContaResposta,
   TypeFormCriarConta,
   TypeFormLogin,
+  TypeInformacoesUsuario,
   TypeLoginResposta,
   TypeUsuarioAtualizar,
   TypeUsuarioAtualizarResposta,
@@ -20,6 +24,8 @@ const BASE_ROTA = "/usuarios";
 
 const MENSAGEM_ERRO_LOGIN = "Login falhou";
 const MENSAGEM_ERRO_SESSAO_COOKIE = "Não foi possível gravar a sessão";
+const MENSAGEM_ERRO_INFORMACOES_USUARIO =
+  "Não foi possível carregar as informações da conta.";
 
 /**
  * Autentica no backend e persiste a sessão em cookies httpOnly (`/api/auth/sessao`).
@@ -59,6 +65,32 @@ export async function postUsuariosLogin(
     );
   }
   return sessao;
+}
+
+/**
+ * Obtém e-mail e nome (Firebase Auth) via `GET /usuarios/informacoes?id=`.
+ */
+export async function getUsuariosInformacoes(
+  userId: string,
+): Promise<TypeInformacoesUsuario> {
+  const url = new URL(
+    `${process.env.NEXT_PUBLIC_BACKEND_URL}${BASE_ROTA}/informacoes`,
+  );
+  url.searchParams.set("id", userId);
+  const resposta = await fetch(url.toString());
+  if (!resposta.ok) {
+    throw new Error(
+      await lerMensagemErroResposta(
+        resposta,
+        MENSAGEM_ERRO_INFORMACOES_USUARIO,
+      ),
+    );
+  }
+  const corpo = await lerCorpoJsonResposta(resposta);
+  if (corpo === null || typeof corpo !== "object") {
+    throw new Error(MENSAGEM_ERRO_INFORMACOES_USUARIO);
+  }
+  return corpo as TypeInformacoesUsuario;
 }
 
 const MENSAGEM_SUCESSO_CRIAR_CONTA = "Conta criada com sucesso.";

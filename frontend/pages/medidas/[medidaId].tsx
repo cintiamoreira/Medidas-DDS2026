@@ -9,7 +9,7 @@ import {
   TypeMedida,
   TypePostFormMedida,
 } from "@/requests/medidas";
-import { temSessaoCookie } from "@/requests/usuarios";
+import { temSessaoCookie } from "@/helpers/usuariosHelper";
 import { Pencil, Trash2 } from "lucide-react";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";

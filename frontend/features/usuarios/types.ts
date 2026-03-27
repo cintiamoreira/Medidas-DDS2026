@@ -1,3 +1,9 @@
+/** Resposta de `GET /usuarios/informacoes?id=`. */
+export type TypeInformacoesUsuario = {
+  email: string | null;
+  nome: string | null;
+};
+
 /** Corpo do formulário de login (campos do form). */
 export type TypeFormLogin = {
   email: string;

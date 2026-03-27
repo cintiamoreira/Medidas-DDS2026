@@ -1,7 +1,7 @@
 import MenuDropdown from "@/components/MenuDropdown";
 import MedidaListaItem from "@/components/MedidaListaItem";
 import { getMedidas, TypePostFormMedida } from "@/requests/medidas";
-import { limparSessaoCookies, temSessaoCookie } from "@/requests/usuarios";
+import { limparSessaoCookies, temSessaoCookie } from "@/helpers/usuariosHelper";
 import { LogOut, PlusCircle, User } from "lucide-react";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";

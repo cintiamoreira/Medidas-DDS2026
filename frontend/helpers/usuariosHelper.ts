@@ -1,26 +1,3 @@
-const BASE_ROTA = "/usuarios";
-
-/** Resposta de GET /usuarios/informacoes?id= */
-export type TypeInformacoesUsuario = {
-  email: string | null;
-  nome: string | null;
-};
-
-/** Carrega nome e e-mail da conta no backend (Firebase Auth). */
-export async function getUsuariosInformacoes(
-  userId: string,
-): Promise<TypeInformacoesUsuario> {
-  const url = new URL(
-    `${process.env.NEXT_PUBLIC_BACKEND_URL}${BASE_ROTA}/informacoes`,
-  );
-  url.searchParams.set("id", userId);
-  const resposta = await fetch(url.toString());
-  if (!resposta.ok) {
-    throw new Error("Não foi possível carregar as informações da conta.");
-  }
-  return (await resposta.json()) as TypeInformacoesUsuario;
-}
-
 export async function limparSessaoCookies(): Promise<void> {
   await fetch("/api/auth/sessao", {
     method: "DELETE",

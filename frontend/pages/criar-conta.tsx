@@ -2,7 +2,7 @@ import BotaoForm from "@/components/BotaoForm";
 import InputForm from "@/components/InputForm";
 import type { TypeFormCriarConta } from "@/features/usuarios/types";
 import { usePostUsuarioCriarConta } from "@/features/usuarios/query";
-import { temSessaoCookie } from "@/requests/usuarios";
+import { temSessaoCookie } from "@/helpers/usuariosHelper";
 import { useRouter } from "next/router";
 import { type FormEvent, useEffect } from "react";
 
