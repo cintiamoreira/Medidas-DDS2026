@@ -1,4 +1,4 @@
-import { getAuthorizationBearerHeaders } from "@/requests/authSessao";
+import { getAuthorizationBearerHeaders } from "@/helpers/usuariosHelper";
 import {
   MENSAGEM_ERRO_PADRAO,
   lerMensagemErroResposta,

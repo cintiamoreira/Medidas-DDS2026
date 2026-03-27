@@ -1,4 +1,4 @@
-import { getAuthorizationBearerHeaders } from "./authSessao";
+import { getAuthorizationBearerHeaders } from "@/helpers/usuariosHelper";
 
 export interface TypeFormCriarConta {
   email: string;
