@@ -3,9 +3,11 @@ import MenuDropdown from "@/components/MenuDropdown";
 import InputTabela from "@/components/InputTabela";
 import { formatarCreatedAt } from "@/helpers/firebaseHelper";
 import {
-  deleteMedidaRemover,
+  useDeleteMedidaRemover,
+  usePutMedidaAtualizar,
+} from "@/queries/medida/query";
+import {
   getMedidaPorId,
-  putMedidaAtualizar,
   TypeMedida,
   TypePostFormMedida,
 } from "@/requests/medidas";
@@ -55,7 +57,8 @@ export default function MedidaDetalhe() {
   const [medida, setMedida] = useState<TypeMedida | null>(null);
   const [editando, setEditando] = useState(false);
   const [formValues, setFormValues] = useState<TypeMedida | null>(null);
-  const [salvando, setSalvando] = useState(false);
+  const atualizarMedidaMutation = usePutMedidaAtualizar();
+  const removerMedidaMutation = useDeleteMedidaRemover();
 
   useEffect(() => {
     let ativo = true;
@@ -76,14 +79,17 @@ export default function MedidaDetalhe() {
     };
   }, [router, medidaId]);
 
-  const handleDeletar = async () => {
-    if (typeof medidaId !== "string") return;
-    try {
-      const resultado = await deleteMedidaRemover(medidaId);
-      if (resultado) router.push("/medidas");
-    } catch {
-      alert("Erro ao remover medida.");
-    }
+  const handleDeletar = () => {
+    if (typeof medidaId !== "string" || removerMedidaMutation.isPending) return;
+    const digitado = window.prompt(
+      "Para confirmar a exclusão, digite o ID da medida:",
+    );
+    if (digitado === null || digitado.trim() !== medidaId) return;
+    removerMedidaMutation.mutate(medidaId, {
+      onSuccess: () => {
+        void router.push("/medidas");
+      },
+    });
   };
 
   const dropdownItens = [
@@ -104,7 +110,7 @@ export default function MedidaDetalhe() {
   const sempreSomenteLeitura = (key: keyof TypeMedida) =>
     key === "id" || key === "createdAt";
 
-  const handleSalvar = async () => {
+  const handleSalvar = () => {
     if (typeof medidaId !== "string" || !formValues) return;
     const dados: TypePostFormMedida = {
       idade: formValues.idade,
@@ -119,18 +125,17 @@ export default function MedidaDetalhe() {
       medidaTorax: formValues.medidaTorax,
       medidaQuadril: formValues.medidaQuadril,
     };
-    setSalvando(true);
-    try {
-      await putMedidaAtualizar(medidaId, dados);
-      const dadosAtualizados = await getMedidaPorId(medidaId);
-      setMedida(dadosAtualizados);
-      setFormValues(dadosAtualizados);
-      setEditando(false);
-    } catch {
-      alert("Erro ao salvar medida.");
-    } finally {
-      setSalvando(false);
-    }
+    atualizarMedidaMutation.mutate(
+      { id: medidaId, dados },
+      {
+        onSuccess: async () => {
+          const dadosAtualizados = await getMedidaPorId(medidaId);
+          setMedida(dadosAtualizados);
+          setFormValues(dadosAtualizados);
+          setEditando(false);
+        },
+      },
+    );
   };
 
   if (router.isFallback) {
@@ -156,6 +161,11 @@ export default function MedidaDetalhe() {
           </h1>
           <MenuDropdown itens={dropdownItens} />
         </div>
+        {removerMedidaMutation.isError ? (
+          <p className="mb-4 text-sm font-medium text-red-600" role="alert">
+            {removerMedidaMutation.error.message}
+          </p>
+        ) : null}
         <div className="flex flex-col">
           {CAMPOS.map(({ key, label, type, format }) => {
             const somenteLeitura = sempreSomenteLeitura(key);
@@ -203,20 +213,31 @@ export default function MedidaDetalhe() {
           })}
         </div>
         {editando && (
-          <div className="mt-6 flex flex-wrap gap-3">
-            <BotaoTabela
-              texto={salvando ? "Salvando..." : "Salvar"}
-              tipo="contained"
-              onClick={handleSalvar}
-            />
-            <BotaoTabela
-              texto="Cancelar"
-              tipo="border"
-              onClick={() => {
-                setEditando(false);
-                setFormValues(medida);
-              }}
-            />
+          <div className="mt-6 flex flex-col gap-3">
+            {atualizarMedidaMutation.isError ? (
+              <p className="text-sm font-medium text-red-600" role="alert">
+                {atualizarMedidaMutation.error.message}
+              </p>
+            ) : null}
+            <div className="flex flex-wrap gap-3">
+              <BotaoTabela
+                texto={
+                  atualizarMedidaMutation.isPending ? "Salvando..." : "Salvar"
+                }
+                tipo="contained"
+                onClick={handleSalvar}
+              />
+              <BotaoTabela
+                texto="Cancelar"
+                tipo="border"
+                onClick={() => {
+                  if (atualizarMedidaMutation.isPending) return;
+                  atualizarMedidaMutation.reset();
+                  setEditando(false);
+                  setFormValues(medida);
+                }}
+              />
+            </div>
           </div>
         )}
       </main>
