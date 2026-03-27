@@ -3,13 +3,14 @@ import MenuDropdown from "@/components/MenuDropdown";
 import InputTabela from "@/components/InputTabela";
 import { formatarCreatedAt } from "@/helpers/firebaseHelper";
 import {
-  deleteMedidaRemover,
-  getMedidaPorId,
-  putMedidaAtualizar,
-  TypeMedida,
-  TypePostFormMedida,
-} from "@/requests/medidas";
-import { temSessaoCookie } from "@/requests/usuarios";
+  medidaPorIdQueryKey,
+  useDeleteMedidaRemover,
+  useMedidaPorId,
+  usePutMedidaAtualizar,
+} from "@/queries/medida/query";
+import { TypeMedida, TypePostFormMedida } from "@/requests/medidas";
+import { temSessaoCookie } from "@/helpers/usuariosHelper";
+import { useQueryClient } from "@tanstack/react-query";
 import { Pencil, Trash2 } from "lucide-react";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -51,11 +52,20 @@ const CAMPOS: {
 export default function MedidaDetalhe() {
   const router = useRouter();
   const { medidaId } = router.query;
+  const queryClient = useQueryClient();
 
-  const [medida, setMedida] = useState<TypeMedida | null>(null);
+  const [sessaoOk, setSessaoOk] = useState(false);
   const [editando, setEditando] = useState(false);
   const [formValues, setFormValues] = useState<TypeMedida | null>(null);
-  const [salvando, setSalvando] = useState(false);
+  const atualizarMedidaMutation = usePutMedidaAtualizar();
+  const removerMedidaMutation = useDeleteMedidaRemover();
+
+  const medidaIdStr = typeof medidaId === "string" ? medidaId : null;
+  const medidaQuery = useMedidaPorId({
+    id: medidaIdStr,
+    enabled: sessaoOk && medidaIdStr !== null,
+  });
+  const medida = medidaQuery.data ?? null;
 
   useEffect(() => {
     let ativo = true;
@@ -64,26 +74,24 @@ export default function MedidaDetalhe() {
         if (ativo) await router.replace("/login");
         return;
       }
-      if (typeof medidaId !== "string") return;
-      const dados = await getMedidaPorId(medidaId);
-      if (ativo) {
-        setMedida(dados);
-        setFormValues(dados);
-      }
+      if (ativo) setSessaoOk(true);
     })();
     return () => {
       ativo = false;
     };
-  }, [router, medidaId]);
+  }, [router]);
 
-  const handleDeletar = async () => {
-    if (typeof medidaId !== "string") return;
-    try {
-      const resultado = await deleteMedidaRemover(medidaId);
-      if (resultado) router.push("/medidas");
-    } catch {
-      alert("Erro ao remover medida.");
-    }
+  const handleDeletar = () => {
+    if (typeof medidaId !== "string" || removerMedidaMutation.isPending) return;
+    const digitado = window.prompt(
+      "Para confirmar a exclusão, digite o ID da medida:",
+    );
+    if (digitado === null || digitado.trim() !== medidaId) return;
+    removerMedidaMutation.mutate(medidaId, {
+      onSuccess: () => {
+        void router.push("/medidas");
+      },
+    });
   };
 
   const dropdownItens = [
@@ -91,7 +99,12 @@ export default function MedidaDetalhe() {
       label: "Editar",
       tom: "primario" as const,
       icone: <Pencil aria-hidden />,
-      onClick: () => setEditando(true),
+      onClick: () => {
+        if (medida) {
+          setFormValues(medida);
+          setEditando(true);
+        }
+      },
     },
     {
       label: "Deletar",
@@ -104,7 +117,7 @@ export default function MedidaDetalhe() {
   const sempreSomenteLeitura = (key: keyof TypeMedida) =>
     key === "id" || key === "createdAt";
 
-  const handleSalvar = async () => {
+  const handleSalvar = () => {
     if (typeof medidaId !== "string" || !formValues) return;
     const dados: TypePostFormMedida = {
       idade: formValues.idade,
@@ -119,30 +132,62 @@ export default function MedidaDetalhe() {
       medidaTorax: formValues.medidaTorax,
       medidaQuadril: formValues.medidaQuadril,
     };
-    setSalvando(true);
-    try {
-      await putMedidaAtualizar(medidaId, dados);
-      const dadosAtualizados = await getMedidaPorId(medidaId);
-      setMedida(dadosAtualizados);
-      setFormValues(dadosAtualizados);
-      setEditando(false);
-    } catch {
-      alert("Erro ao salvar medida.");
-    } finally {
-      setSalvando(false);
-    }
+    atualizarMedidaMutation.mutate(
+      { id: medidaId, dados },
+      {
+        onSuccess: async () => {
+          await queryClient.refetchQueries({
+            queryKey: medidaPorIdQueryKey(medidaId),
+          });
+          setEditando(false);
+          setFormValues(null);
+        },
+      },
+    );
   };
 
-  if (router.isFallback) {
+  const shellVazio = (
+    <div className="flex min-h-screen flex-col bg-zinc-50 dark:bg-black" />
+  );
+
+  /* Router / ID: sem “Carregando” (ainda não há pedido ao backend). */
+  if (router.isFallback || !router.isReady || !medidaIdStr) {
+    return shellVazio;
+  }
+
+  /* Sessão: redireciona para login no efeito; não confundir com fetch da medida. */
+  if (!sessaoOk) {
+    return shellVazio;
+  }
+
+  /* Só aqui a query está enabled e o GET /medidas/ler pode estar em curso. */
+  if (medidaQuery.isLoading) {
     return (
-      <p className="p-8 text-zinc-600 dark:text-zinc-400">Carregando...</p>
+      <div className="flex min-h-screen flex-col bg-zinc-50 p-8 font-sans dark:bg-black">
+        <p className="text-zinc-600 dark:text-zinc-400">Carregando...</p>
+      </div>
+    );
+  }
+
+  if (medidaQuery.isError) {
+    return (
+      <div className="flex min-h-screen flex-col bg-zinc-50 p-8 font-sans dark:bg-black">
+        <p className="p-8 text-sm font-medium text-red-600" role="alert">
+          {medidaQuery.error.message}
+        </p>
+      </div>
     );
   }
 
   if (!medida) {
     return (
       <div className="flex min-h-screen flex-col bg-zinc-50 p-8 font-sans dark:bg-black">
-        <p className="text-zinc-600 dark:text-zinc-400">Carregando...</p>
+        <p
+          className="p-8 text-sm text-zinc-600 dark:text-zinc-400"
+          role="status"
+        >
+          Não foi possível carregar a medida.
+        </p>
       </div>
     );
   }
@@ -156,11 +201,16 @@ export default function MedidaDetalhe() {
           </h1>
           <MenuDropdown itens={dropdownItens} />
         </div>
+        {removerMedidaMutation.isError ? (
+          <p className="mb-4 text-sm font-medium text-red-600" role="alert">
+            {removerMedidaMutation.error.message}
+          </p>
+        ) : null}
         <div className="flex flex-col">
           {CAMPOS.map(({ key, label, type, format }) => {
             const somenteLeitura = sempreSomenteLeitura(key);
             const desabilitado = somenteLeitura || !editando;
-            const valorFonte = formValues ?? medida;
+            const valorFonte = editando && formValues ? formValues : medida;
             const value = valorFonte[key];
             const display =
               format && value != null
@@ -203,20 +253,31 @@ export default function MedidaDetalhe() {
           })}
         </div>
         {editando && (
-          <div className="mt-6 flex flex-wrap gap-3">
-            <BotaoTabela
-              texto={salvando ? "Salvando..." : "Salvar"}
-              tipo="contained"
-              onClick={handleSalvar}
-            />
-            <BotaoTabela
-              texto="Cancelar"
-              tipo="border"
-              onClick={() => {
-                setEditando(false);
-                setFormValues(medida);
-              }}
-            />
+          <div className="mt-6 flex flex-col gap-3">
+            {atualizarMedidaMutation.isError ? (
+              <p className="text-sm font-medium text-red-600" role="alert">
+                {atualizarMedidaMutation.error.message}
+              </p>
+            ) : null}
+            <div className="flex flex-wrap gap-3">
+              <BotaoTabela
+                texto={
+                  atualizarMedidaMutation.isPending ? "Salvando..." : "Salvar"
+                }
+                tipo="contained"
+                onClick={handleSalvar}
+              />
+              <BotaoTabela
+                texto="Cancelar"
+                tipo="border"
+                onClick={() => {
+                  if (atualizarMedidaMutation.isPending) return;
+                  atualizarMedidaMutation.reset();
+                  setEditando(false);
+                  setFormValues(null);
+                }}
+              />
+            </div>
           </div>
         )}
       </main>

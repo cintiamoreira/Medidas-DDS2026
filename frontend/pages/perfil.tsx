@@ -2,15 +2,19 @@ import BotaoTabela from "@/components/BotaoTabela";
 import MenuDropdown from "@/components/MenuDropdown";
 import InputTabela from "@/components/InputTabela";
 import {
-  deleteUsuarioRemover,
+  useDeleteUsuarioRemover,
+  usePutUsuarioAtualizar,
+  useUsuarioInformacoes,
+  usuariosInformacoesQueryKey,
+} from "@/queries/usuarios/query";
+import {
   getUserIdDaSessao,
-  getUsuariosInformacoes,
   limparSessaoCookies,
-  putUsuarioAtualizar,
-} from "@/requests/usuarios";
+} from "@/helpers/usuariosHelper";
+import { useQueryClient } from "@tanstack/react-query";
 import { Pencil, Trash2 } from "lucide-react";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type FormPerfil = {
   nome: string;
@@ -19,47 +23,48 @@ type FormPerfil = {
 
 export default function Perfil() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [userId, setUserId] = useState<string | null>(null);
-  const [perfil, setPerfil] = useState<FormPerfil | null>(null);
-  const [formValues, setFormValues] = useState<FormPerfil | null>(null);
+  const [sessaoResolvida, setSessaoResolvida] = useState(false);
   const [editando, setEditando] = useState(false);
-  const [salvando, setSalvando] = useState(false);
-  const [deletando, setDeletando] = useState(false);
-  const [carregando, setCarregando] = useState(true);
-  const [erroCarregamento, setErroCarregamento] = useState("");
+  /** Só preenchido enquanto `editando` — cópia editável dos dados da query. */
+  const [rascunho, setRascunho] = useState<FormPerfil | null>(null);
+  const atualizarMutation = usePutUsuarioAtualizar();
+  const removerMutation = useDeleteUsuarioRemover();
+
+  const informacoesQuery = useUsuarioInformacoes(userId);
+
+  const dadosAtuais = useMemo((): FormPerfil | null => {
+    if (!informacoesQuery.data) return null;
+    return {
+      nome: informacoesQuery.data.nome ?? "",
+      email: informacoesQuery.data.email,
+    };
+  }, [informacoesQuery.data]);
+
+  const exibicao = editando && rascunho ? rascunho : dadosAtuais;
 
   useEffect(() => {
     let ativo = true;
     void (async () => {
-      setErroCarregamento("");
       const uid = await getUserIdDaSessao();
+      if (!ativo) return;
       if (!uid) {
-        if (ativo) await router.replace("/login");
-        return;
+        await router.replace("/login");
+      } else {
+        setUserId(uid);
       }
-      if (ativo) setUserId(uid);
-      try {
-        const info = await getUsuariosInformacoes(uid);
-        if (!ativo) return;
-        const p: FormPerfil = {
-          nome: info.nome ?? "",
-          email: info.email,
-        };
-        setPerfil(p);
-        setFormValues(p);
-      } catch {
-        if (ativo) setErroCarregamento("Não foi possível carregar o perfil.");
-      } finally {
-        if (ativo) setCarregando(false);
-      }
+      setSessaoResolvida(true);
     })();
     return () => {
       ativo = false;
     };
   }, [router]);
 
-  const handleDeletar = async () => {
-    if (!userId || deletando || salvando) return;
+  const handleDeletar = () => {
+    if (!userId || removerMutation.isPending || atualizarMutation.isPending) {
+      return;
+    }
     const confirma = window.confirm(
       "Tem certeza que deseja excluir sua conta? Esta ação não pode ser desfeita.",
     );
@@ -71,7 +76,7 @@ export default function Perfil() {
     if (digitado === null) return;
 
     const esperado =
-      (formValues?.email ?? perfil?.email)?.trim().toLowerCase() ?? "";
+      (exibicao?.email ?? dadosAtuais?.email)?.trim().toLowerCase() ?? "";
     if (esperado === "") {
       window.alert("Não foi possível obter o e-mail da conta.");
       return;
@@ -81,40 +86,33 @@ export default function Perfil() {
       return;
     }
 
-    setDeletando(true);
-    try {
-      await deleteUsuarioRemover(userId);
-      await limparSessaoCookies();
-      await router.replace("/login");
-    } catch {
-      window.alert("Não foi possível excluir a conta.");
-    } finally {
-      setDeletando(false);
-    }
+    removerMutation.mutate(userId, {
+      onSuccess: async () => {
+        await limparSessaoCookies();
+        await router.replace("/login");
+      },
+    });
   };
 
-  const handleSalvar = async () => {
-    if (salvando || !userId || !formValues) return;
-    if (formValues.nome.trim() === "") {
+  const handleSalvar = () => {
+    if (atualizarMutation.isPending || !userId || !rascunho) return;
+    if (rascunho.nome.trim() === "") {
       window.alert("Informe um nome válido.");
       return;
     }
-    setSalvando(true);
-    try {
-      await putUsuarioAtualizar({ id: userId, nome: formValues.nome.trim() });
-      const info = await getUsuariosInformacoes(userId);
-      const p: FormPerfil = {
-        nome: info.nome ?? "",
-        email: info.email,
-      };
-      setPerfil(p);
-      setFormValues(p);
-      setEditando(false);
-    } catch {
-      window.alert("Erro ao salvar perfil.");
-    } finally {
-      setSalvando(false);
-    }
+    atualizarMutation.mutate(
+      { id: userId, nome: rascunho.nome.trim() },
+      {
+        onSuccess: () => {
+          void queryClient.invalidateQueries({
+            queryKey: usuariosInformacoesQueryKey(userId),
+          });
+          setEditando(false);
+          setRascunho(null);
+          atualizarMutation.reset();
+        },
+      },
+    );
   };
 
   const dropdownItens = [
@@ -122,7 +120,11 @@ export default function Perfil() {
       label: "Editar",
       tom: "primario" as const,
       icone: <Pencil aria-hidden />,
-      onClick: () => setEditando(true),
+      onClick: () => {
+        if (!dadosAtuais) return;
+        setRascunho({ ...dadosAtuais });
+        setEditando(true);
+      },
     },
     {
       label: "Deletar",
@@ -132,7 +134,7 @@ export default function Perfil() {
     },
   ];
 
-  if (carregando) {
+  if (!sessaoResolvida) {
     return (
       <div className="flex min-h-screen flex-col bg-zinc-50 p-8 font-sans dark:bg-black">
         <p className="text-zinc-600 dark:text-zinc-400">Carregando...</p>
@@ -140,17 +142,39 @@ export default function Perfil() {
     );
   }
 
-  if (!perfil || !formValues) {
+  if (!userId) {
+    return null;
+  }
+
+  if (informacoesQuery.isPending) {
     return (
       <div className="flex min-h-screen flex-col bg-zinc-50 p-8 font-sans dark:bg-black">
-        <p className="text-red-600 dark:text-red-400">
-          {erroCarregamento || "Não foi possível carregar o perfil."}
+        <p className="text-zinc-600 dark:text-zinc-400">Carregando...</p>
+      </div>
+    );
+  }
+
+  if (informacoesQuery.isError) {
+    return (
+      <div className="flex min-h-screen flex-col bg-zinc-50 p-8 font-sans dark:bg-black">
+        <p className="text-red-600 dark:text-red-400" role="alert">
+          {informacoesQuery.error.message}
         </p>
       </div>
     );
   }
 
-  const emailExibicao = formValues.email ?? "";
+  if (!exibicao) {
+    return (
+      <div className="flex min-h-screen flex-col bg-zinc-50 p-8 font-sans dark:bg-black">
+        <p className="text-red-600 dark:text-red-400">
+          Não foi possível carregar o perfil.
+        </p>
+      </div>
+    );
+  }
+
+  const emailExibicao = exibicao.email ?? "";
   const nomeDesabilitado = !editando;
   const emailSempreDesabilitado = true;
 
@@ -163,6 +187,11 @@ export default function Perfil() {
           </h1>
           <MenuDropdown itens={dropdownItens} />
         </div>
+        {removerMutation.isError ? (
+          <p className="mb-4 font-bold text-red-600" role="alert">
+            {removerMutation.error.message}
+          </p>
+        ) : null}
         <div className="flex flex-col">
           <InputTabela
             name="email"
@@ -176,13 +205,13 @@ export default function Perfil() {
             name="nome"
             titulo="Nome"
             type="text"
-            value={formValues.nome}
+            value={exibicao.nome}
             disabled={nomeDesabilitado}
             readOnly={nomeDesabilitado}
             onChange={
               editando
                 ? (e) =>
-                    setFormValues((prev) =>
+                    setRascunho((prev) =>
                       prev ? { ...prev, nome: e.target.value } : null,
                     )
                 : undefined
@@ -190,20 +219,28 @@ export default function Perfil() {
           />
         </div>
         {editando && (
-          <div className="mt-6 flex flex-wrap gap-3">
-            <BotaoTabela
-              texto={salvando ? "Salvando..." : "Salvar"}
-              tipo="contained"
-              onClick={() => void handleSalvar()}
-            />
-            <BotaoTabela
-              texto="Cancelar"
-              tipo="border"
-              onClick={() => {
-                setEditando(false);
-                setFormValues(perfil);
-              }}
-            />
+          <div className="mt-6 flex flex-col gap-3">
+            {atualizarMutation.isError ? (
+              <p className="font-bold text-red-600" role="alert">
+                {atualizarMutation.error.message}
+              </p>
+            ) : null}
+            <div className="flex flex-wrap gap-3">
+              <BotaoTabela
+                texto={atualizarMutation.isPending ? "Salvando…" : "Salvar"}
+                tipo="contained"
+                onClick={() => handleSalvar()}
+              />
+              <BotaoTabela
+                texto="Cancelar"
+                tipo="border"
+                onClick={() => {
+                  atualizarMutation.reset();
+                  setEditando(false);
+                  setRascunho(null);
+                }}
+              />
+            </div>
           </div>
         )}
       </main>

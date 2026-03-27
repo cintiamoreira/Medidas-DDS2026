@@ -1,32 +1,26 @@
 import BotaoForm from "@/components/BotaoForm";
 
 import InputForm from "@/components/InputForm";
+import { usePostMedidaCriar } from "@/queries/medida/query";
+import type { TypePostFormMedida } from "@/requests/medidas";
 import { useRouter } from "next/router";
-import { SubmitEvent, useState } from "react";
-import { postMedidaCriar, TypePostFormMedida } from "@/requests/medidas";
+import { type FormEvent } from "react";
 
 export default function Login() {
   const router = useRouter();
-  const [carregando, setCarregando] = useState(false);
-  const submeterFormulario = async (evento: SubmitEvent<HTMLFormElement>) => {
+  const criarMedidaMutation = usePostMedidaCriar();
+
+  const submeterFormulario = (evento: FormEvent<HTMLFormElement>) => {
     evento.preventDefault();
     const formData = new FormData(evento.currentTarget);
-    const dadosLogin = Object.fromEntries(
-      formData,
-    ) as unknown as TypePostFormMedida;
+    const dados = Object.fromEntries(formData) as unknown as TypePostFormMedida;
 
-    setCarregando(true);
-    await postMedidaCriar(
-      dadosLogin,
-      () => {
-        alert("Medida criada com sucesso!");
-        router.back();
+    criarMedidaMutation.mutate(dados, {
+      onSuccess: (resposta) => {
+        alert(resposta.message);
+        void router.back();
       },
-      () => {
-        alert("Erro ao criar medida!");
-      },
-    );
-    setCarregando(false);
+    });
   };
 
   return (
@@ -98,12 +92,19 @@ export default function Login() {
             required={false}
           />
 
-          {carregando && (
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">
-              Carregando
+          {criarMedidaMutation.isError ? (
+            <p className="text-sm font-medium text-red-600" role="alert">
+              {criarMedidaMutation.error.message}
             </p>
-          )}
-          <BotaoForm texto="Registrar medida" desabilitado={carregando} />
+          ) : null}
+          <BotaoForm
+            texto={
+              criarMedidaMutation.isPending
+                ? "Registrando…"
+                : "Registrar medida"
+            }
+            desabilitado={criarMedidaMutation.isPending}
+          />
         </form>
       </main>
     </div>
