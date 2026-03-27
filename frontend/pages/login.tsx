@@ -1,8 +1,8 @@
 import BotaoForm from "@/components/BotaoForm";
 import BotaoNavegacao from "../components/BotaoNavegacao";
 import InputForm from "@/components/InputForm";
-import type { TypeFormLogin } from "@/features/usuarios/types";
-import { usePostUsuarioLogin } from "@/features/usuarios/query";
+import type { TypeFormLogin } from "@/queries/usuarios/types";
+import { usePostUsuarioLogin } from "@/queries/usuarios/query";
 import { temSessaoCookie } from "@/helpers/usuariosHelper";
 import { useRouter } from "next/router";
 import { type FormEvent, useEffect } from "react";

@@ -6,7 +6,7 @@ import {
   usePutUsuarioAtualizar,
   useUsuarioInformacoes,
   usuariosInformacoesQueryKey,
-} from "@/features/usuarios/query";
+} from "@/queries/usuarios/query";
 import {
   getUserIdDaSessao,
   limparSessaoCookies,
