@@ -28,9 +28,7 @@ routerUsuarios.post(
         });
         res.status(200).json({ message: 'Conta criada com sucesso' });
       } catch {
-        res
-          .status(500)
-          .json({ message: 'Houve um erro para criacao da conta' });
+        res.status(500).json({ message: 'Houve um erro para criar a conta' });
       }
     },
   })

@@ -2,11 +2,13 @@ import BotaoTabela from "@/components/BotaoTabela";
 import MenuDropdown from "@/components/MenuDropdown";
 import InputTabela from "@/components/InputTabela";
 import {
-  deleteUsuarioRemover,
+  useDeleteUsuarioRemover,
+  usePutUsuarioAtualizar,
+} from "@/features/usuarios/query";
+import {
   getUserIdDaSessao,
   getUsuariosInformacoes,
   limparSessaoCookies,
-  putUsuarioAtualizar,
 } from "@/requests/usuarios";
 import { Pencil, Trash2 } from "lucide-react";
 import { useRouter } from "next/router";
@@ -23,8 +25,8 @@ export default function Perfil() {
   const [perfil, setPerfil] = useState<FormPerfil | null>(null);
   const [formValues, setFormValues] = useState<FormPerfil | null>(null);
   const [editando, setEditando] = useState(false);
-  const [salvando, setSalvando] = useState(false);
-  const [deletando, setDeletando] = useState(false);
+  const atualizarMutation = usePutUsuarioAtualizar();
+  const removerMutation = useDeleteUsuarioRemover();
   const [carregando, setCarregando] = useState(true);
   const [erroCarregamento, setErroCarregamento] = useState("");
 
@@ -58,8 +60,10 @@ export default function Perfil() {
     };
   }, [router]);
 
-  const handleDeletar = async () => {
-    if (!userId || deletando || salvando) return;
+  const handleDeletar = () => {
+    if (!userId || removerMutation.isPending || atualizarMutation.isPending) {
+      return;
+    }
     const confirma = window.confirm(
       "Tem certeza que deseja excluir sua conta? Esta ação não pode ser desfeita.",
     );
@@ -81,40 +85,42 @@ export default function Perfil() {
       return;
     }
 
-    setDeletando(true);
-    try {
-      await deleteUsuarioRemover(userId);
-      await limparSessaoCookies();
-      await router.replace("/login");
-    } catch {
-      window.alert("Não foi possível excluir a conta.");
-    } finally {
-      setDeletando(false);
-    }
+    removerMutation.mutate(userId, {
+      onSuccess: async () => {
+        await limparSessaoCookies();
+        await router.replace("/login");
+      },
+    });
   };
 
-  const handleSalvar = async () => {
-    if (salvando || !userId || !formValues) return;
+  const handleSalvar = () => {
+    if (atualizarMutation.isPending || !userId || !formValues) return;
     if (formValues.nome.trim() === "") {
       window.alert("Informe um nome válido.");
       return;
     }
-    setSalvando(true);
-    try {
-      await putUsuarioAtualizar({ id: userId, nome: formValues.nome.trim() });
-      const info = await getUsuariosInformacoes(userId);
-      const p: FormPerfil = {
-        nome: info.nome ?? "",
-        email: info.email,
-      };
-      setPerfil(p);
-      setFormValues(p);
-      setEditando(false);
-    } catch {
-      window.alert("Erro ao salvar perfil.");
-    } finally {
-      setSalvando(false);
-    }
+    atualizarMutation.mutate(
+      { id: userId, nome: formValues.nome.trim() },
+      {
+        onSuccess: async () => {
+          try {
+            const info = await getUsuariosInformacoes(userId);
+            const p: FormPerfil = {
+              nome: info.nome ?? "",
+              email: info.email,
+            };
+            setPerfil(p);
+            setFormValues(p);
+            setEditando(false);
+            atualizarMutation.reset();
+          } catch {
+            window.alert(
+              "Nome atualizado, mas não foi possível recarregar o perfil.",
+            );
+          }
+        },
+      },
+    );
   };
 
   const dropdownItens = [
@@ -163,6 +169,11 @@ export default function Perfil() {
           </h1>
           <MenuDropdown itens={dropdownItens} />
         </div>
+        {removerMutation.isError ? (
+          <p className="mb-4 font-bold text-red-600" role="alert">
+            {removerMutation.error.message}
+          </p>
+        ) : null}
         <div className="flex flex-col">
           <InputTabela
             name="email"
@@ -190,20 +201,28 @@ export default function Perfil() {
           />
         </div>
         {editando && (
-          <div className="mt-6 flex flex-wrap gap-3">
-            <BotaoTabela
-              texto={salvando ? "Salvando..." : "Salvar"}
-              tipo="contained"
-              onClick={() => void handleSalvar()}
-            />
-            <BotaoTabela
-              texto="Cancelar"
-              tipo="border"
-              onClick={() => {
-                setEditando(false);
-                setFormValues(perfil);
-              }}
-            />
+          <div className="mt-6 flex flex-col gap-3">
+            {atualizarMutation.isError ? (
+              <p className="font-bold text-red-600" role="alert">
+                {atualizarMutation.error.message}
+              </p>
+            ) : null}
+            <div className="flex flex-wrap gap-3">
+              <BotaoTabela
+                texto={atualizarMutation.isPending ? "Salvando…" : "Salvar"}
+                tipo="contained"
+                onClick={() => handleSalvar()}
+              />
+              <BotaoTabela
+                texto="Cancelar"
+                tipo="border"
+                onClick={() => {
+                  atualizarMutation.reset();
+                  setEditando(false);
+                  setFormValues(perfil);
+                }}
+              />
+            </div>
           </div>
         )}
       </main>

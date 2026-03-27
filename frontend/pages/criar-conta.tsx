@@ -1,17 +1,14 @@
 import BotaoForm from "@/components/BotaoForm";
 import InputForm from "@/components/InputForm";
-import {
-  postCriarConta,
-  temSessaoCookie,
-  TypeFormCriarConta,
-} from "@/requests/usuarios";
+import type { TypeFormCriarConta } from "@/features/usuarios/types";
+import { usePostUsuarioCriarConta } from "@/features/usuarios/query";
+import { temSessaoCookie } from "@/requests/usuarios";
 import { useRouter } from "next/router";
-import { SubmitEvent, useEffect, useState } from "react";
+import { type FormEvent, useEffect } from "react";
 
 export default function CriarConta() {
   const router = useRouter();
-  const [mensagemErro, setMensagemErro] = useState("");
-  const [carregando, setCarregando] = useState(false);
+  const criarContaMutation = usePostUsuarioCriarConta();
 
   useEffect(() => {
     let ativo = true;
@@ -25,28 +22,16 @@ export default function CriarConta() {
     };
   }, [router]);
 
-  const submeterFormulario = async (evento: SubmitEvent<HTMLFormElement>) => {
+  const submeterFormulario = (evento: FormEvent<HTMLFormElement>) => {
     evento.preventDefault();
     const formData = new FormData(evento.currentTarget);
     const dados = Object.fromEntries(formData) as unknown as TypeFormCriarConta;
-    if (dados.senha !== dados.confirmarSenha) {
-      setMensagemErro("ERRO: As senhas não coincidem.");
-    } else {
-      setMensagemErro("");
-      setCarregando(true);
-      await postCriarConta(
-        dados,
-        () => {
-          setCarregando(false);
-          router.replace("/login");
-          alert("Conta criada com sucesso! Por favor, faça login!");
-        },
-        () => {
-          setCarregando(false);
-          alert("Ocorreu um erro");
-        },
-      );
-    }
+    criarContaMutation.mutate(dados, {
+      onSuccess: (resposta) => {
+        void router.replace("/login");
+        alert(resposta.message);
+      },
+    });
   };
 
   return (
@@ -65,9 +50,17 @@ export default function CriarConta() {
             type="password"
             required
           />
-          <p className="font-bold text-red-600">{mensagemErro}</p>
-          {carregando === true && <p>Carregando...</p>}
-          <BotaoForm texto="Criar conta" desabilitado={carregando} />
+          {criarContaMutation.isError ? (
+            <p className="font-bold text-red-600" role="alert">
+              {criarContaMutation.error.message}
+            </p>
+          ) : null}
+          <BotaoForm
+            texto={
+              criarContaMutation.isPending ? "Criando conta…" : "Criar conta"
+            }
+            desabilitado={criarContaMutation.isPending}
+          />
         </form>
       </main>
     </div>

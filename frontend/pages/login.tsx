@@ -1,12 +1,15 @@
 import BotaoForm from "@/components/BotaoForm";
 import BotaoNavegacao from "../components/BotaoNavegacao";
 import InputForm from "@/components/InputForm";
+import type { TypeFormLogin } from "@/features/usuarios/types";
+import { usePostUsuarioLogin } from "@/features/usuarios/query";
+import { temSessaoCookie } from "@/requests/usuarios";
 import { useRouter } from "next/router";
-import { SubmitEvent, useEffect } from "react";
-import { postLogin, temSessaoCookie, TypeFormLogin } from "@/requests/usuarios";
+import { type FormEvent, useEffect } from "react";
 
 export default function Login() {
   const router = useRouter();
+  const loginMutation = usePostUsuarioLogin();
 
   useEffect(() => {
     let ativo = true;
@@ -20,19 +23,18 @@ export default function Login() {
     };
   }, [router]);
 
-  const submeterFormulario = (evento: SubmitEvent<HTMLFormElement>) => {
+  const submeterFormulario = (evento: FormEvent<HTMLFormElement>) => {
     evento.preventDefault();
     const formData = new FormData(evento.currentTarget);
     const dadosLogin = Object.fromEntries(formData) as unknown as TypeFormLogin;
-    postLogin(
-      dadosLogin,
-      async () => {
+    loginMutation.mutate(dadosLogin, {
+      onSuccess: async () => {
         await router.replace("/medidas");
       },
-      () => {
+      onError: () => {
         alert("Erro ao logar!");
       },
-    );
+    });
   };
 
   return (
@@ -44,7 +46,10 @@ export default function Login() {
         >
           <InputForm name="email" titulo="Email" type="email" required />
           <InputForm name="senha" titulo="Senha" type="password" required />
-          <BotaoForm texto="Login" />
+          <BotaoForm
+            texto={loginMutation.isPending ? "Entrando…" : "Login"}
+            desabilitado={loginMutation.isPending}
+          />
           <BotaoNavegacao
             tipo="borda"
             texto="Criar conta"
