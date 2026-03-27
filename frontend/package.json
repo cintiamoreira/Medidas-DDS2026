@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "docker-build": "docker build -t medidas-frontend .",
+    "docker-run": "docker run --rm -p 3000:3000 medidas-frontend"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.95.2",
