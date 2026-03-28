@@ -1,9 +1,5 @@
 import { authFirebase } from '../config/firebase.js';
 
-/**
- * Lê o JWT do header `Authorization: Bearer <token>`.
- * @returns {string|null}
- */
 export function extrairBearerToken(req) {
   const raw = req.headers?.authorization;
   if (!raw || typeof raw !== 'string') return null;
@@ -11,10 +7,6 @@ export function extrairBearerToken(req) {
   return m ? m[1] : null;
 }
 
-/**
- * Valida o idToken do Firebase e devolve o UID do usuário.
- * @returns {Promise<{ ok: true, uid: string } | { ok: false, status: number, error: string }>}
- */
 export async function verificarUidDoIdToken(req) {
   if (!authFirebase) {
     return {
