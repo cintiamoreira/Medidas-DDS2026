@@ -1,5 +1,3 @@
-# Deploy do Next.js em frontend/ para a Vercel (apenas produção).
-# Execução manual: Actions → Run workflow. Podes acrescentar triggers de push depois.
 name: Vercel — frontend
 
 on:

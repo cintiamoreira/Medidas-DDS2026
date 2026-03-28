@@ -6,10 +6,6 @@ import { AlertCircle } from "lucide-react";
 
 const MENSAGEM_FALLBACK_HEALTH = "Falha ao contactar o servidor.";
 
-/**
- * Dispara GET `/health` uma vez quando a app monta no cliente (primeira abertura).
- * Em caso de erro, mostra um aviso com tooltip.
- */
 export function HealthTooltip() {
   const noCliente = typeof window !== "undefined";
   const { isError, error } = useHealth({ enabled: noCliente });

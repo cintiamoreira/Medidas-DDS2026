@@ -1,6 +1,3 @@
-/**
- * Lê o JSON de uma `Response` já com status ok; devolve `null` se o parse falhar.
- */
 export async function lerCorpoJsonResposta(
   resposta: Response,
 ): Promise<unknown | null> {
@@ -11,9 +8,6 @@ export async function lerCorpoJsonResposta(
   }
 }
 
-/**
- * Extrai `message` de um corpo JSON; usa `mensagemFallback` se faltar ou vier vazio.
- */
 export function extrairMensagemDeCorpo(
   corpo: unknown,
   mensagemFallback: string,
@@ -30,9 +24,6 @@ export function extrairMensagemDeCorpo(
   return { message: mensagemFallback };
 }
 
-/**
- * Resposta de sucesso com apenas `message` (ex.: POST criar-conta).
- */
 export async function lerRespostaSucessoComMensagem(
   resposta: Response,
   mensagemFallback: string,
@@ -44,9 +35,6 @@ export async function lerRespostaSucessoComMensagem(
   return extrairMensagemDeCorpo(corpo, mensagemFallback);
 }
 
-/**
- * Extrai `id` e `message`; usa fallbacks quando faltar ou vier vazio.
- */
 export function extrairIdEMensagemDeCorpo(
   corpo: unknown,
   idFallback: string,
@@ -67,9 +55,6 @@ export function extrairIdEMensagemDeCorpo(
   return { id, message: msg };
 }
 
-/**
- * Resposta de sucesso com `id` e `message` (ex.: PUT atualizar).
- */
 export async function lerRespostaSucessoComIdEMensagem(
   resposta: Response,
   idFallback: string,

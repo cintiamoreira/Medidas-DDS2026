@@ -1,5 +1,3 @@
-# Build da imagem Docker do backend e push para Amazon ECR (mesmo fluxo que npm run deploy-aws).
-# Execução manual: Actions → Run workflow.
 name: AWS — backend (ECR)
 
 on:
@@ -8,7 +6,6 @@ on:
         - main
   workflow_dispatch:
 
-# Definir em Settings → Secrets and variables → Actions → Variables
 env:
   AWS_REGION: ${{ vars.AWS_REGION }}
   ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}

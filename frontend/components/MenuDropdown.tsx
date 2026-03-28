@@ -12,7 +12,6 @@ export type ItemMenuDropdown = {
 
 type MenuDropdownProps = {
   itens: ItemMenuDropdown[];
-  /** Se definido, renderiza a barra superior com título centralizado (ex.: lista de medidas). */
   titulo?: string;
 };
 

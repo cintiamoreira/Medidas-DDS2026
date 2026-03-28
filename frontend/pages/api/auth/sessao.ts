@@ -10,7 +10,6 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     }
     return res.status(200).json({
       userId: req.cookies.user_id ?? null,
-      /** Só o servidor lê o cookie httpOnly; o cliente usa isto para Authorization no backend. */
       idToken: req.cookies.id_token ?? null,
     });
   }

@@ -1,9 +1,5 @@
-/** Mensagem usada quando o corpo de erro não é JSON ou não traz `message` / `error`. */
 export const MENSAGEM_ERRO_PADRAO = "Não foi possível concluir o pedido.";
 
-/**
- * Lê `message` ou `error` do JSON de uma resposta HTTP de erro.
- */
 export async function lerMensagemErroResposta(
   resposta: Response,
   mensagemPadrao: string = MENSAGEM_ERRO_PADRAO,
@@ -26,9 +22,6 @@ export async function lerMensagemErroResposta(
   return mensagemPadrao;
 }
 
-/**
- * Mensagem a partir de um `error` de React Query / `catch` (Error, DOMException, etc.).
- */
 export function lerMensagemErroDesconhecido(
   erro: unknown,
   mensagemFallback: string = MENSAGEM_ERRO_PADRAO,

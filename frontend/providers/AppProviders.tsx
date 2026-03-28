@@ -17,13 +17,6 @@ type AppProvidersProps = {
   children: ReactNode;
 };
 
-/**
- * Envolve a app com o TanStack Query. Um `QueryClient` por montagem evita
- * estado partilhado entre pedidos em SSR.
- *
- * (Devtools: `npm i -D @tanstack/react-query-devtools` e um import dinâmico
- * só em desenvolvimento, se quiseres o painel.)
- */
 export function AppProviders({ children }: AppProvidersProps) {
   const [queryClient] = useState(criarQueryClient);
 

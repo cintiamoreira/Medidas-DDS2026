@@ -27,9 +27,6 @@ const MENSAGEM_ERRO_SESSAO_COOKIE = "Não foi possível gravar a sessão";
 const MENSAGEM_ERRO_INFORMACOES_USUARIO =
   "Não foi possível carregar as informações da conta.";
 
-/**
- * Autentica no backend e persiste a sessão em cookies httpOnly (`/api/auth/sessao`).
- */
 export async function postUsuariosLogin(
   dados: TypeFormLogin,
 ): Promise<TypeLoginResposta> {
@@ -67,9 +64,6 @@ export async function postUsuariosLogin(
   return sessao;
 }
 
-/**
- * Obtém e-mail e nome (Firebase Auth) via `GET /usuarios/ler?id=` (Bearer obrigatório; só o próprio utilizador).
- */
 export async function getUsuariosInformacoes(
   userId: string,
 ): Promise<TypeInformacoesUsuario> {
@@ -96,9 +90,6 @@ const MENSAGEM_SUCESSO_CRIAR_CONTA = "Conta criada com sucesso.";
 const MENSAGEM_SUCESSO_ATUALIZAR_USUARIO = "Usuário atualizado.";
 const MENSAGEM_SUCESSO_REMOVER_USUARIO = "Usuário removido.";
 
-/**
- * Cria conta no Firebase Auth via `POST /usuarios/criar-conta`.
- */
 export async function postUsuariosCriarConta(
   dados: TypeFormCriarConta,
 ): Promise<TypeCriarContaResposta> {
@@ -128,9 +119,6 @@ export async function postUsuariosCriarConta(
   return lerRespostaSucessoComMensagem(resposta, MENSAGEM_SUCESSO_CRIAR_CONTA);
 }
 
-/**
- * Atualiza nome (displayName) via `PUT /usuarios/atualizar`.
- */
 export async function putUsuariosAtualizar(
   dados: TypeUsuarioAtualizar,
 ): Promise<TypeUsuarioAtualizarResposta> {
@@ -158,9 +146,6 @@ export async function putUsuariosAtualizar(
   );
 }
 
-/**
- * Remove a própria conta via `DELETE /usuarios/remover?id=`.
- */
 export async function deleteUsuariosRemover(
   userId: string,
 ): Promise<TypeUsuarioRemoverResposta> {

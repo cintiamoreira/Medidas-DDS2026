@@ -15,7 +15,6 @@ type BotaoItemMenuDropdownProps = {
   label: string;
   onClickCallback: () => void;
   aoFecharMenu: () => void;
-  /** @default "neutro" */
   tom?: TomBotaoMenu;
   icone?: ReactNode;
 };

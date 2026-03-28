@@ -8,8 +8,6 @@ type BotaoNavegacaoProps = {
 };
 
 const BotaoNavegacao = (props: BotaoNavegacaoProps) => {
-  //props.tipo = container
-
   return (
     <Link href={props.href} className={botaoEstilos[props.tipo || "borda"]}>
       {props.texto}

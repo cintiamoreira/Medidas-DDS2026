@@ -10,10 +10,6 @@ const HEALTH_TIMEOUT_MS = 2000;
 const MENSAGEM_TIMEOUT_HEALTH =
   "Tempo esgotado ao verificar o estado do servidor.";
 
-/**
- * `AbortSignal.timeout` costuma rejeitar com `DOMException` (`TimeoutError` /
- * mensagem "signal timed out"), não só `Error` + `AbortError`.
- */
 function eTimeoutOuAbortFetch(erro: unknown): boolean {
   if (typeof erro !== "object" || erro === null) return false;
   const nome =
@@ -34,9 +30,6 @@ function eTimeoutOuAbortFetch(erro: unknown): boolean {
   );
 }
 
-/**
- * GET `/health` — sem autenticação; confirma que o backend está a responder.
- */
 export async function getHealthApi(): Promise<TypeHealthResposta> {
   let resposta: Response;
   try {
