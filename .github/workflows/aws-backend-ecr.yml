@@ -23,6 +23,50 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # Segredos: FIREBASE_SERVICE_ACCOUNT_TYPE, PROJECT_ID, PRIVATE_KEY_ID, PRIVATE_KEY,
+      # CLIENT_EMAIL, CLIENT_ID, AUTH_URI, TOKEN_URI, AUTH_PROVIDER_X509_CERT_URL,
+      # CLIENT_X509_CERT_URL, UNIVERSE_DOMAIN
+      - name: Criar credencial Firebase (config/firebase-service-account.json)
+        env:
+          FIREBASE_SERVICE_ACCOUNT_TYPE: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_TYPE }}
+          FIREBASE_SERVICE_ACCOUNT_PROJECT_ID: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_PROJECT_ID }}
+          FIREBASE_SERVICE_ACCOUNT_PRIVATE_KEY_ID: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_PRIVATE_KEY_ID }}
+          FIREBASE_SERVICE_ACCOUNT_PRIVATE_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_PRIVATE_KEY }}
+          FIREBASE_SERVICE_ACCOUNT_CLIENT_EMAIL: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_CLIENT_EMAIL }}
+          FIREBASE_SERVICE_ACCOUNT_CLIENT_ID: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_CLIENT_ID }}
+          FIREBASE_SERVICE_ACCOUNT_AUTH_URI: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_AUTH_URI }}
+          FIREBASE_SERVICE_ACCOUNT_TOKEN_URI: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_TOKEN_URI }}
+          FIREBASE_SERVICE_ACCOUNT_AUTH_PROVIDER_X509_CERT_URL: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_AUTH_PROVIDER_X509_CERT_URL }}
+          FIREBASE_SERVICE_ACCOUNT_CLIENT_X509_CERT_URL: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_CLIENT_X509_CERT_URL }}
+          FIREBASE_SERVICE_ACCOUNT_UNIVERSE_DOMAIN: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_UNIVERSE_DOMAIN }}
+        run: |
+          mkdir -p config
+          jq -n \
+            --arg type "$FIREBASE_SERVICE_ACCOUNT_TYPE" \
+            --arg project_id "$FIREBASE_SERVICE_ACCOUNT_PROJECT_ID" \
+            --arg private_key_id "$FIREBASE_SERVICE_ACCOUNT_PRIVATE_KEY_ID" \
+            --arg private_key "$FIREBASE_SERVICE_ACCOUNT_PRIVATE_KEY" \
+            --arg client_email "$FIREBASE_SERVICE_ACCOUNT_CLIENT_EMAIL" \
+            --arg client_id "$FIREBASE_SERVICE_ACCOUNT_CLIENT_ID" \
+            --arg auth_uri "$FIREBASE_SERVICE_ACCOUNT_AUTH_URI" \
+            --arg token_uri "$FIREBASE_SERVICE_ACCOUNT_TOKEN_URI" \
+            --arg auth_provider_x509_cert_url "$FIREBASE_SERVICE_ACCOUNT_AUTH_PROVIDER_X509_CERT_URL" \
+            --arg client_x509_cert_url "$FIREBASE_SERVICE_ACCOUNT_CLIENT_X509_CERT_URL" \
+            --arg universe_domain "$FIREBASE_SERVICE_ACCOUNT_UNIVERSE_DOMAIN" \
+            '{
+              type: $type,
+              project_id: $project_id,
+              private_key_id: $private_key_id,
+              private_key: $private_key,
+              client_email: $client_email,
+              client_id: $client_id,
+              auth_uri: $auth_uri,
+              token_uri: $token_uri,
+              auth_provider_x509_cert_url: $auth_provider_x509_cert_url,
+              client_x509_cert_url: $client_x509_cert_url,
+              universe_domain: $universe_domain
+            }' > config/firebase-service-account.json
+
       - name: Configurar credenciais AWS
         uses: aws-actions/configure-aws-credentials@v4
         with:
