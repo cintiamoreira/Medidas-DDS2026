@@ -5,7 +5,7 @@ import { dirname, join } from 'path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const credPath = join(__dirname, '../../config/firebase-service-account.json');
+const credPath = join(__dirname, '../../config/credential.json');
 
 let app;
 try {
