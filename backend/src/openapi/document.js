@@ -164,11 +164,18 @@ registry.registerPath({
 
 registry.registerPath({
   method: 'get',
-  path: '/usuarios/informacoes',
-  summary: 'Dados do usuário por id (Firebase UID)',
+  path: '/usuarios/ler',
+  summary:
+    'Dados do próprio utilizador (requer Authorization: Bearer; `id` no query deve ser o UID do token)',
   tags: ['Usuários'],
   request: {
     query: schemaQueryIdUsuario,
+    headers: z.object({
+      authorization: z.string().openapi({
+        description: 'Bearer <idToken> — JWT do Firebase Auth',
+        example: 'Bearer eyJhbGciOiJSUzI1NiIs...',
+      }),
+    }),
   },
   responses: {
     200: {
@@ -179,7 +186,16 @@ registry.registerPath({
       description: 'Validação',
       content: { 'application/json': { schema: ErroValidacao } },
     },
+    401: {
+      description: 'Token ausente ou inválido',
+      content: { 'application/json': { schema: ErroSimples } },
+    },
+    403: {
+      description: '`id` diferente do utilizador autenticado',
+      content: { 'application/json': { schema: ErroSimples } },
+    },
     404: { description: 'Usuário não encontrado' },
+    503: { description: 'Serviço indisponível' },
     500: { description: 'Erro no servidor' },
   },
 });
@@ -410,10 +426,17 @@ registry.registerPath({
 registry.registerPath({
   method: 'delete',
   path: '/medidas/remover',
-  summary: 'Remover medida',
+  summary:
+    'Remover medida (requer Authorization: Bearer; só remove se a medida for do utilizador)',
   tags: ['Medidas'],
   request: {
     query: schemaQueryIdMedida,
+    headers: z.object({
+      authorization: z.string().openapi({
+        description: 'Bearer <idToken> — JWT do Firebase Auth',
+        example: 'Bearer eyJhbGciOiJSUzI1NiIs...',
+      }),
+    }),
   },
   responses: {
     200: {
@@ -424,8 +447,12 @@ registry.registerPath({
       description: 'Validação',
       content: { 'application/json': { schema: ErroValidacao } },
     },
+    401: {
+      description: 'Token ausente ou inválido',
+      content: { 'application/json': { schema: ErroSimples } },
+    },
     404: {
-      description: 'Não encontrada',
+      description: 'Não encontrada ou não pertence ao utilizador',
       content: { 'application/json': { schema: ErroSimples } },
     },
     503: {

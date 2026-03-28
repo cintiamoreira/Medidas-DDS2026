@@ -149,6 +149,10 @@ routerMedidas.delete(
     schema: schemaQueryIdMedida,
     obterDados: (req) => normalizarQueryId(req.query),
     executar: async (data, req, res) => {
+      const authResult = await verificarUidDoIdToken(req);
+      if (authResult.ok === false) {
+        return res.status(authResult.status).json({ error: authResult.error });
+      }
       const { id } = data;
       if (!dbFirebase) {
         return res.status(503).json({ error: 'Firestore não disponível' });
@@ -157,6 +161,10 @@ routerMedidas.delete(
         const docRef = dbFirebase.collection('medidas').doc(id);
         const doc = await docRef.get();
         if (!doc.exists) {
+          return res.status(404).json({ error: 'Medida não encontrada' });
+        }
+        const docData = doc.data();
+        if (docData?.userId !== authResult.uid) {
           return res.status(404).json({ error: 'Medida não encontrada' });
         }
         await docRef.delete();

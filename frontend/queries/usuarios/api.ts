@@ -68,16 +68,15 @@ export async function postUsuariosLogin(
 }
 
 /**
- * Obtém e-mail e nome (Firebase Auth) via `GET /usuarios/informacoes?id=`.
+ * Obtém e-mail e nome (Firebase Auth) via `GET /usuarios/ler?id=` (Bearer obrigatório; só o próprio utilizador).
  */
 export async function getUsuariosInformacoes(
   userId: string,
 ): Promise<TypeInformacoesUsuario> {
-  const url = new URL(
-    `${process.env.NEXT_PUBLIC_BACKEND_URL}${BASE_ROTA}/informacoes`,
-  );
+  const auth = await getAuthorizationBearerHeaders();
+  const url = new URL(`${process.env.NEXT_PUBLIC_BACKEND_URL}${BASE_ROTA}/ler`);
   url.searchParams.set("id", userId);
-  const resposta = await fetch(url.toString());
+  const resposta = await fetch(url.toString(), { headers: { ...auth } });
   if (!resposta.ok) {
     throw new Error(
       await lerMensagemErroResposta(

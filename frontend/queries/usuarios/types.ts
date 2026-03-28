@@ -1,4 +1,4 @@
-/** Resposta de `GET /usuarios/informacoes?id=`. */
+/** Resposta de `GET /usuarios/ler?id=`. */
 export type TypeInformacoesUsuario = {
   email: string | null;
   nome: string | null;

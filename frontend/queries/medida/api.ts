@@ -128,15 +128,16 @@ export async function getMedidaPorIdApi(id: string): Promise<TypeMedida> {
 }
 
 /**
- * Remove medida via `DELETE /medidas/remover?id=…` (mesmo contrato do backend atual).
+ * Remove medida via `DELETE /medidas/remover?id=…` (Bearer obrigatório).
  */
 export async function deleteMedidaRemoverApi(
   id: string,
 ): Promise<TypeMedidaRemoverResposta> {
+  const auth = await getAuthorizationBearerHeaders();
   const params = new URLSearchParams({ id });
   const resposta = await fetch(
     `${process.env.NEXT_PUBLIC_BACKEND_URL}${BASE_ROTA}/remover?${params.toString()}`,
-    { method: "DELETE" },
+    { method: "DELETE", headers: { ...auth } },
   );
   if (!resposta.ok) {
     throw new Error(
