@@ -5,16 +5,19 @@ import { dirname, join } from 'path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
+const credPath = join(__dirname, '../../config/firebase-service-account.json');
+
 let app;
 try {
-  const credPath =
-    process.env.GOOGLE_APPLICATION_CREDENTIALS ||
-    join(__dirname, '../../config/firebase-service-account.json');
   const serviceAccount = JSON.parse(readFileSync(credPath, 'utf8'));
   app = admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
   });
-  console.log('Firebase iniciado');
+  console.log(
+    serviceAccount.project_id
+      ? `Firebase Admin OK (project_id: ${serviceAccount.project_id})`
+      : 'Firebase Admin OK'
+  );
 } catch (e) {
   console.error('Erro ao iniciar o firebase:', e.message);
 }
