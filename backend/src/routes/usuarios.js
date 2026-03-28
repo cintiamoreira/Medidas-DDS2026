@@ -8,9 +8,13 @@ import {
   schemaUsuarioCriarConta,
   schemaUsuarioEmailSenha,
 } from '../schemas/usuarios.js';
+import { mapearErroFirebaseAuthParaCliente } from '../helpers/erroFirebaseAuth.js';
 import { normalizarQueryId } from '../utils/normalizarQuery.js';
 
 const routerUsuarios = express.Router();
+
+const MENSAGEM_ERRO_CRIAR_CONTA_GENERICO =
+  'Não foi possível criar a conta. Tente novamente dentro de momentos.';
 
 routerUsuarios.post(
   '/criar-conta',
@@ -18,11 +22,15 @@ routerUsuarios.post(
     schema: schemaUsuarioCriarConta,
     obterDados: (req) => req.body ?? {},
     executar: async (data, req, res) => {
+      console.log('POST /criar-conta');
       const { email, senha, nome } = data;
       if (!authFirebase) {
+        console.error(
+          'criar-conta: Firebase Admin indisponível (credenciais em falta ou inválidas no servidor)'
+        );
         return res.status(503).json({
           message:
-            'Firebase Admin não inicializado (ver config/firebase-service-account.json).',
+            'O serviço de contas não está disponível. Contacte o suporte ou tente mais tarde.',
         });
       }
       try {
@@ -32,8 +40,13 @@ routerUsuarios.post(
           displayName: nome,
         });
         res.status(200).json({ message: 'Conta criada com sucesso' });
-      } catch {
-        res.status(500).json({ message: 'Houve um erro para criar a conta' });
+      } catch (erro) {
+        const mapeado = mapearErroFirebaseAuthParaCliente(erro);
+        if (mapeado) {
+          return res.status(mapeado.status).json({ message: mapeado.message });
+        }
+        console.error('criar-conta: erro não mapeado', erro);
+        res.status(500).json({ message: MENSAGEM_ERRO_CRIAR_CONTA_GENERICO });
       }
     },
   })
@@ -45,44 +58,23 @@ routerUsuarios.post(
     schema: schemaUsuarioEmailSenha,
     obterDados: (req) => req.body ?? {},
     executar: async (data, req, res) => {
+      console.log('POST /login');
       const { email, senha } = data;
-      const apiKey = process.env.FIREBASE_WEB_API_KEY;
-      if (!apiKey || String(apiKey).trim() === '') {
-        console.error(
-          'POST /login: defina FIREBASE_WEB_API_KEY (Console Firebase → Project settings → General → Web API Key)'
-        );
-        return res.status(503).json({
-          message:
-            'Servidor sem FIREBASE_WEB_API_KEY. É obrigatória para o login e é independente do ficheiro JSON da conta de serviço.',
-        });
-      }
       try {
-        const url = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${apiKey}`;
+        const url = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${process.env.FIREBASE_WEB_API_KEY}`;
         const response = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            email,
+            email: email,
             password: senha,
             returnSecureToken: true,
           }),
         });
-        const dados = await response.json();
         if (!response.ok) {
-          const codigo = dados?.error?.message;
-          console.warn('POST /login Identity Toolkit:', codigo);
-          const credenciais = [
-            'EMAIL_NOT_FOUND',
-            'INVALID_PASSWORD',
-            'INVALID_LOGIN_CREDENTIALS',
-            'USER_DISABLED',
-          ].includes(codigo);
-          return res.status(credenciais ? 401 : 502).json({
-            message: credenciais
-              ? 'E-mail ou senha incorretos.'
-              : 'Falha ao contactar o serviço de autenticação.',
-          });
+          throw new Error('Resposta não ok');
         }
+        const dados = await response.json();
         const {
           idToken,
           refreshToken,
@@ -95,6 +87,7 @@ routerUsuarios.post(
             message: 'Resposta de autenticação inválida',
           });
         }
+
         res.status(200).json({
           idToken,
           refreshToken,
@@ -103,10 +96,9 @@ routerUsuarios.post(
           email: emailResposta ?? null,
         });
       } catch (erro) {
-        console.error('POST /login:', erro);
-        res.status(500).json({
-          message: 'Houve um problema para realizar o login',
-        });
+        res
+          .status(500)
+          .json({ message: 'Houve um problema para realizar o login', erro });
       }
     },
   })
@@ -146,24 +138,12 @@ routerUsuarios.put(
 );
 
 routerUsuarios.get(
-  '/ler',
+  '/informacoes',
   validarEExecutar({
     schema: schemaQueryIdUsuario,
     obterDados: (req) => req.query ?? {},
     executar: async (data, req, res) => {
-      const authResult = await verificarUidDoIdToken(req);
-      if (authResult.ok === false) {
-        return res.status(authResult.status).json({ error: authResult.error });
-      }
       const { id } = data;
-      if (id !== authResult.uid) {
-        return res.status(403).json({
-          error: 'Não é possível consultar o perfil de outro utilizador',
-        });
-      }
-      if (!authFirebase) {
-        return res.status(503).json({ error: 'Autenticação não disponível' });
-      }
       try {
         const userRecord = await authFirebase.getUser(id);
         res.status(200).json({

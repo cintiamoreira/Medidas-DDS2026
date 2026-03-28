@@ -24,6 +24,9 @@ const MENSAGEM_SUCESSO_CRIAR_MEDIDA = "Medida criada.";
 const MENSAGEM_SUCESSO_ATUALIZAR_MEDIDA = "Medida atualizada.";
 const MENSAGEM_SUCESSO_REMOVER_MEDIDA = "Medida removida.";
 
+/**
+ * Cria medida no Firestore via `POST /medidas/criar` (Bearer obrigatório).
+ */
 export async function postMedidaCriarApi(
   dados: TypePostFormMedida,
 ): Promise<TypeMedidaCriarResposta> {
@@ -51,6 +54,9 @@ export async function postMedidaCriarApi(
   );
 }
 
+/**
+ * Atualiza medida via `PUT /medidas/atualizar` (Bearer obrigatório).
+ */
 export async function putMedidaAtualizarApi(
   variaveis: TypeMedidaAtualizarVariaveis,
 ): Promise<TypeMedidaAtualizarResposta> {
@@ -79,6 +85,9 @@ export async function putMedidaAtualizarApi(
   );
 }
 
+/**
+ * Lista medidas do utilizador via `GET /medidas/ler-todas` (Bearer obrigatório).
+ */
 export async function getMedidasLerTodasApi(): Promise<TypeMedidaLista[]> {
   const auth = await getAuthorizationBearerHeaders();
   const resposta = await fetch(
@@ -97,6 +106,9 @@ export async function getMedidasLerTodasApi(): Promise<TypeMedidaLista[]> {
   return corpo as TypeMedidaLista[];
 }
 
+/**
+ * Obtém uma medida via `GET /medidas/ler?id=…` (Bearer obrigatório).
+ */
 export async function getMedidaPorIdApi(id: string): Promise<TypeMedida> {
   const auth = await getAuthorizationBearerHeaders();
   const resposta = await fetch(
@@ -115,14 +127,16 @@ export async function getMedidaPorIdApi(id: string): Promise<TypeMedida> {
   return corpo as TypeMedida;
 }
 
+/**
+ * Remove medida via `DELETE /medidas/remover?id=…` (mesmo contrato do backend atual).
+ */
 export async function deleteMedidaRemoverApi(
   id: string,
 ): Promise<TypeMedidaRemoverResposta> {
-  const auth = await getAuthorizationBearerHeaders();
   const params = new URLSearchParams({ id });
   const resposta = await fetch(
     `${process.env.NEXT_PUBLIC_BACKEND_URL}${BASE_ROTA}/remover?${params.toString()}`,
-    { method: "DELETE", headers: { ...auth } },
+    { method: "DELETE" },
   );
   if (!resposta.ok) {
     throw new Error(

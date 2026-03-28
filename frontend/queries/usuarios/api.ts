@@ -87,6 +87,8 @@ export async function getUsuariosInformacoes(
 }
 
 const MENSAGEM_SUCESSO_CRIAR_CONTA = "Conta criada com sucesso.";
+const MENSAGEM_ERRO_CRIAR_CONTA =
+  "Não foi possível criar a conta. Verifique os dados e tente novamente.";
 const MENSAGEM_SUCESSO_ATUALIZAR_USUARIO = "Usuário atualizado.";
 const MENSAGEM_SUCESSO_REMOVER_USUARIO = "Usuário removido.";
 
@@ -113,7 +115,7 @@ export async function postUsuariosCriarConta(
   );
   if (!resposta.ok) {
     throw new Error(
-      await lerMensagemErroResposta(resposta, MENSAGEM_ERRO_PADRAO),
+      await lerMensagemErroResposta(resposta, MENSAGEM_ERRO_CRIAR_CONTA),
     );
   }
   return lerRespostaSucessoComMensagem(resposta, MENSAGEM_SUCESSO_CRIAR_CONTA);
