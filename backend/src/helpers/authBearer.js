@@ -12,7 +12,8 @@ export async function verificarUidDoIdToken(req) {
     return {
       ok: false,
       status: 503,
-      error: 'Autenticação não disponível',
+      error:
+        'Firebase Admin não configurado no servidor (necessário para validar o idToken). O login não depende disto; verifique FIREBASE_SERVICE_ACCOUNT_JSON ou config/credential.json.',
     };
   }
   const token = extrairBearerToken(req);

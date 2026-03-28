@@ -52,6 +52,8 @@ routerUsuarios.post(
   })
 );
 
+// Login: só chama a Identity Toolkit (REST) com FIREBASE_WEB_API_KEY — não usa Firebase Admin SDK.
+// Rotas que validam Bearer (ex.: /medidas) precisam de Admin inicializado (credential.json / FIREBASE_SERVICE_ACCOUNT_JSON).
 routerUsuarios.post(
   '/login',
   validarEExecutar({
