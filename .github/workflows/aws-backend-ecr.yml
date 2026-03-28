@@ -40,6 +40,7 @@ jobs:
           FIREBASE_SERVICE_ACCOUNT_CLIENT_X509_CERT_URL: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_CLIENT_X509_CERT_URL }}
           FIREBASE_SERVICE_ACCOUNT_UNIVERSE_DOMAIN: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_UNIVERSE_DOMAIN }}
         run: |
+          mkdir -p config
           jq -n \
             --arg type "$FIREBASE_SERVICE_ACCOUNT_TYPE" \
             --arg project_id "$FIREBASE_SERVICE_ACCOUNT_PROJECT_ID" \
