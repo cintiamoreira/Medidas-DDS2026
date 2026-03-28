@@ -1,5 +1,5 @@
 /**
- * Converte erros do Firebase Admin Auth (createUser, etc.) em HTTP status + mensagem segura para o cliente.
+ * Converte erros do Firebase Admin (credencial, Auth createUser, etc.) em HTTP status + mensagem segura para o cliente.
  * @param {unknown} erro
  * @returns {{ status: number, message: string } | null}
  */
@@ -13,6 +13,10 @@ export function mapearErroFirebaseAuthParaCliente(erro) {
   }
 
   const mapa = {
+    'app/invalid-credential': {
+      status: 503,
+      message: 'O servidor não conseguiu validar as credenciais.',
+    },
     'auth/email-already-exists': {
       status: 409,
       message:
