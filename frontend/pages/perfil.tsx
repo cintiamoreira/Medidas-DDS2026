@@ -133,115 +133,106 @@ export default function Perfil() {
     },
   ];
 
+  const shellVazio = (
+    <div className="flex min-h-screen flex-col bg-zinc-50 dark:bg-black" />
+  );
+
   if (!sessaoResolvida) {
-    return (
-      <div className="flex min-h-screen flex-col bg-zinc-50 p-8 font-sans dark:bg-black">
-        <p className="text-zinc-600 dark:text-zinc-400">Carregando...</p>
-      </div>
-    );
+    return shellVazio;
   }
 
   if (!userId) {
     return null;
   }
 
-  if (informacoesQuery.isPending) {
-    return (
-      <div className="flex min-h-screen flex-col bg-zinc-50 p-8 font-sans dark:bg-black">
-        <p className="text-zinc-600 dark:text-zinc-400">Carregando...</p>
-      </div>
-    );
-  }
-
-  if (informacoesQuery.isError) {
-    return (
-      <div className="flex min-h-screen flex-col bg-zinc-50 p-8 font-sans dark:bg-black">
-        <p className="text-red-600 dark:text-red-400" role="alert">
-          {informacoesQuery.error.message}
-        </p>
-      </div>
-    );
-  }
-
-  if (!exibicao) {
-    return (
-      <div className="flex min-h-screen flex-col bg-zinc-50 p-8 font-sans dark:bg-black">
-        <p className="text-red-600 dark:text-red-400">
-          Não foi possível carregar o perfil.
-        </p>
-      </div>
-    );
-  }
-
-  const emailExibicao = exibicao.email ?? "";
+  const emailExibicao = exibicao?.email ?? "";
   const nomeDesabilitado = !editando;
   const emailSempreDesabilitado = true;
+
+  const conteudoPrincipal = informacoesQuery.isPending ? (
+    <p className="text-zinc-600 dark:text-zinc-400">Carregando...</p>
+  ) : informacoesQuery.isError ? (
+    <p
+      className="text-sm font-medium text-red-600 dark:text-red-400"
+      role="alert"
+    >
+      {informacoesQuery.error.message}
+    </p>
+  ) : !exibicao ? (
+    <p className="text-sm text-red-600 dark:text-red-400" role="status">
+      Não foi possível carregar o perfil.
+    </p>
+  ) : (
+    <>
+      <div className="mb-6 flex items-center justify-between gap-2">
+        <h1 className="text-xl font-semibold text-zinc-900 dark:text-white">
+          Perfil
+        </h1>
+        <MenuDropdown itens={dropdownItens} />
+      </div>
+      {removerMutation.isError ? (
+        <p className="mb-4 font-bold text-red-600" role="alert">
+          {removerMutation.error.message}
+        </p>
+      ) : null}
+      <div className="flex flex-col">
+        <InputTabela
+          name="email"
+          titulo="E-mail"
+          type="email"
+          value={emailExibicao}
+          disabled={emailSempreDesabilitado}
+          readOnly={emailSempreDesabilitado}
+        />
+        <InputTabela
+          name="nome"
+          titulo="Nome"
+          type="text"
+          value={exibicao.nome}
+          disabled={nomeDesabilitado}
+          readOnly={nomeDesabilitado}
+          onChange={
+            editando
+              ? (e) =>
+                  setRascunho((prev) =>
+                    prev ? { ...prev, nome: e.target.value } : null,
+                  )
+              : undefined
+          }
+        />
+      </div>
+      {editando && (
+        <div className="mt-6 flex flex-col gap-3">
+          {atualizarMutation.isError ? (
+            <p className="font-bold text-red-600" role="alert">
+              {atualizarMutation.error.message}
+            </p>
+          ) : null}
+          <div className="flex flex-wrap gap-3">
+            <BotaoTabela
+              texto={atualizarMutation.isPending ? "Salvando…" : "Salvar"}
+              tipo="contained"
+              onClick={() => handleSalvar()}
+            />
+            <BotaoTabela
+              texto="Cancelar"
+              tipo="border"
+              onClick={() => {
+                atualizarMutation.reset();
+                setEditando(false);
+                setRascunho(null);
+              }}
+            />
+          </div>
+        </div>
+      )}
+    </>
+  );
 
   return (
     <div className="flex min-h-screen flex-col bg-zinc-50 p-8 font-sans dark:bg-black">
       <main className="mx-auto w-full max-w-2xl rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-        <div className="mb-6 flex items-center justify-between gap-2">
-          <h1 className="text-xl font-semibold text-zinc-900 dark:text-white">
-            Perfil
-          </h1>
-          <MenuDropdown itens={dropdownItens} />
-        </div>
-        {removerMutation.isError ? (
-          <p className="mb-4 font-bold text-red-600" role="alert">
-            {removerMutation.error.message}
-          </p>
-        ) : null}
-        <div className="flex flex-col">
-          <InputTabela
-            name="email"
-            titulo="E-mail"
-            type="email"
-            value={emailExibicao}
-            disabled={emailSempreDesabilitado}
-            readOnly={emailSempreDesabilitado}
-          />
-          <InputTabela
-            name="nome"
-            titulo="Nome"
-            type="text"
-            value={exibicao.nome}
-            disabled={nomeDesabilitado}
-            readOnly={nomeDesabilitado}
-            onChange={
-              editando
-                ? (e) =>
-                    setRascunho((prev) =>
-                      prev ? { ...prev, nome: e.target.value } : null,
-                    )
-                : undefined
-            }
-          />
-        </div>
-        {editando && (
-          <div className="mt-6 flex flex-col gap-3">
-            {atualizarMutation.isError ? (
-              <p className="font-bold text-red-600" role="alert">
-                {atualizarMutation.error.message}
-              </p>
-            ) : null}
-            <div className="flex flex-wrap gap-3">
-              <BotaoTabela
-                texto={atualizarMutation.isPending ? "Salvando…" : "Salvar"}
-                tipo="contained"
-                onClick={() => handleSalvar()}
-              />
-              <BotaoTabela
-                texto="Cancelar"
-                tipo="border"
-                onClick={() => {
-                  atualizarMutation.reset();
-                  setEditando(false);
-                  setRascunho(null);
-                }}
-              />
-            </div>
-          </div>
-        )}
+        {conteudoPrincipal}
       </main>
     </div>
   );
