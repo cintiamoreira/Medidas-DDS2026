@@ -158,125 +158,110 @@ export default function MedidaDetalhe() {
     return shellVazio;
   }
 
-  if (medidaQuery.isLoading) {
-    return (
-      <div className="flex min-h-screen flex-col bg-zinc-50 p-8 font-sans dark:bg-black">
-        <p className="text-zinc-600 dark:text-zinc-400">Carregando...</p>
+  const conteudoPrincipal = medidaQuery.isLoading ? (
+    <p className="text-zinc-600 dark:text-zinc-400">Carregando...</p>
+  ) : medidaQuery.isError ? (
+    <p className="text-sm font-medium text-red-600" role="alert">
+      {medidaQuery.error.message}
+    </p>
+  ) : !medida ? (
+    <p className="text-sm text-zinc-600 dark:text-zinc-400" role="status">
+      Não foi possível carregar a medida.
+    </p>
+  ) : (
+    <>
+      <div className="mb-6 flex items-center justify-between gap-2">
+        <h1 className="text-xl font-semibold text-zinc-900 dark:text-white">
+          Detalhes da medida
+        </h1>
+        <MenuDropdown itens={dropdownItens} />
       </div>
-    );
-  }
-
-  if (medidaQuery.isError) {
-    return (
-      <div className="flex min-h-screen flex-col bg-zinc-50 p-8 font-sans dark:bg-black">
-        <p className="p-8 text-sm font-medium text-red-600" role="alert">
-          {medidaQuery.error.message}
+      {removerMedidaMutation.isError ? (
+        <p className="mb-4 text-sm font-medium text-red-600" role="alert">
+          {removerMedidaMutation.error.message}
         </p>
+      ) : null}
+      <div className="flex flex-col">
+        {CAMPOS.map(({ key, label, type, format }) => {
+          const somenteLeitura = sempreSomenteLeitura(key);
+          const desabilitado = somenteLeitura || !editando;
+          const valorFonte = editando && formValues ? formValues : medida;
+          const value = valorFonte[key];
+          const display =
+            format && value != null
+              ? format(value)
+              : value != null && value !== ""
+                ? String(value)
+                : "";
+          return (
+            <InputTabela
+              key={key}
+              name={key}
+              titulo={label}
+              type={type}
+              value={display}
+              disabled={desabilitado}
+              readOnly={desabilitado}
+              onChange={
+                editando && !somenteLeitura
+                  ? (e) => {
+                      const v = e.target.value;
+                      setFormValues((prev) =>
+                        prev
+                          ? {
+                              ...prev,
+                              [key]:
+                                type === "number"
+                                  ? ((parseFloat(
+                                      v,
+                                    ) as TypeMedida[keyof TypeMedida]) ??
+                                    prev[key])
+                                  : v,
+                            }
+                          : null,
+                      );
+                    }
+                  : undefined
+              }
+            />
+          );
+        })}
       </div>
-    );
-  }
-
-  if (!medida) {
-    return (
-      <div className="flex min-h-screen flex-col bg-zinc-50 p-8 font-sans dark:bg-black">
-        <p
-          className="p-8 text-sm text-zinc-600 dark:text-zinc-400"
-          role="status"
-        >
-          Não foi possível carregar a medida.
-        </p>
-      </div>
-    );
-  }
+      {editando && (
+        <div className="mt-6 flex flex-col gap-3">
+          {atualizarMedidaMutation.isError ? (
+            <p className="text-sm font-medium text-red-600" role="alert">
+              {atualizarMedidaMutation.error.message}
+            </p>
+          ) : null}
+          <div className="flex flex-wrap gap-3">
+            <BotaoTabela
+              texto={
+                atualizarMedidaMutation.isPending ? "Salvando..." : "Salvar"
+              }
+              tipo="contained"
+              onClick={handleSalvar}
+            />
+            <BotaoTabela
+              texto="Cancelar"
+              tipo="border"
+              onClick={() => {
+                if (atualizarMedidaMutation.isPending) return;
+                atualizarMedidaMutation.reset();
+                setEditando(false);
+                setFormValues(null);
+              }}
+            />
+          </div>
+        </div>
+      )}
+    </>
+  );
 
   return (
     <div className="flex min-h-screen flex-col bg-zinc-50 p-8 font-sans dark:bg-black">
       <main className="mx-auto w-full max-w-2xl rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-        <div className="mb-6 flex items-center justify-between gap-2">
-          <h1 className="text-xl font-semibold text-zinc-900 dark:text-white">
-            Detalhes da medida
-          </h1>
-          <MenuDropdown itens={dropdownItens} />
-        </div>
-        {removerMedidaMutation.isError ? (
-          <p className="mb-4 text-sm font-medium text-red-600" role="alert">
-            {removerMedidaMutation.error.message}
-          </p>
-        ) : null}
-        <div className="flex flex-col">
-          {CAMPOS.map(({ key, label, type, format }) => {
-            const somenteLeitura = sempreSomenteLeitura(key);
-            const desabilitado = somenteLeitura || !editando;
-            const valorFonte = editando && formValues ? formValues : medida;
-            const value = valorFonte[key];
-            const display =
-              format && value != null
-                ? format(value)
-                : value != null && value !== ""
-                  ? String(value)
-                  : "";
-            return (
-              <InputTabela
-                key={key}
-                name={key}
-                titulo={label}
-                type={type}
-                value={display}
-                disabled={desabilitado}
-                readOnly={desabilitado}
-                onChange={
-                  editando && !somenteLeitura
-                    ? (e) => {
-                        const v = e.target.value;
-                        setFormValues((prev) =>
-                          prev
-                            ? {
-                                ...prev,
-                                [key]:
-                                  type === "number"
-                                    ? ((parseFloat(
-                                        v,
-                                      ) as TypeMedida[keyof TypeMedida]) ??
-                                      prev[key])
-                                    : v,
-                              }
-                            : null,
-                        );
-                      }
-                    : undefined
-                }
-              />
-            );
-          })}
-        </div>
-        {editando && (
-          <div className="mt-6 flex flex-col gap-3">
-            {atualizarMedidaMutation.isError ? (
-              <p className="text-sm font-medium text-red-600" role="alert">
-                {atualizarMedidaMutation.error.message}
-              </p>
-            ) : null}
-            <div className="flex flex-wrap gap-3">
-              <BotaoTabela
-                texto={
-                  atualizarMedidaMutation.isPending ? "Salvando..." : "Salvar"
-                }
-                tipo="contained"
-                onClick={handleSalvar}
-              />
-              <BotaoTabela
-                texto="Cancelar"
-                tipo="border"
-                onClick={() => {
-                  if (atualizarMedidaMutation.isPending) return;
-                  atualizarMedidaMutation.reset();
-                  setEditando(false);
-                  setFormValues(null);
-                }}
-              />
-            </div>
-          </div>
-        )}
+        {conteudoPrincipal}
       </main>
     </div>
   );
