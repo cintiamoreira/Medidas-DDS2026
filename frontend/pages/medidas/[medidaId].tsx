@@ -150,17 +150,14 @@ export default function MedidaDetalhe() {
     <div className="flex min-h-screen flex-col bg-zinc-50 dark:bg-black" />
   );
 
-  /* Router / ID: sem “Carregando” (ainda não há pedido ao backend). */
   if (router.isFallback || !router.isReady || !medidaIdStr) {
     return shellVazio;
   }
 
-  /* Sessão: redireciona para login no efeito; não confundir com fetch da medida. */
   if (!sessaoOk) {
     return shellVazio;
   }
 
-  /* Só aqui a query está enabled e o GET /medidas/ler pode estar em curso. */
   if (medidaQuery.isLoading) {
     return (
       <div className="flex min-h-screen flex-col bg-zinc-50 p-8 font-sans dark:bg-black">

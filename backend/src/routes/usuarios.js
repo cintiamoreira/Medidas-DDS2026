@@ -120,12 +120,24 @@ routerUsuarios.put(
 );
 
 routerUsuarios.get(
-  '/informacoes',
+  '/ler',
   validarEExecutar({
     schema: schemaQueryIdUsuario,
     obterDados: (req) => req.query ?? {},
     executar: async (data, req, res) => {
+      const authResult = await verificarUidDoIdToken(req);
+      if (authResult.ok === false) {
+        return res.status(authResult.status).json({ error: authResult.error });
+      }
       const { id } = data;
+      if (id !== authResult.uid) {
+        return res.status(403).json({
+          error: 'Não é possível consultar o perfil de outro utilizador',
+        });
+      }
+      if (!authFirebase) {
+        return res.status(503).json({ error: 'Autenticação não disponível' });
+      }
       try {
         const userRecord = await authFirebase.getUser(id);
         res.status(200).json({

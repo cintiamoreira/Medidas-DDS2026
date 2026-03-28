@@ -5,7 +5,6 @@ export async function limparSessaoCookies(): Promise<void> {
   });
 }
 
-/** `userId` gravado no cookie httpOnly (via GET /api/auth/sessao). */
 export async function getUserIdDaSessao(): Promise<string | null> {
   const resposta = await fetch("/api/auth/sessao", {
     credentials: "same-origin",
@@ -17,7 +16,6 @@ export async function getUserIdDaSessao(): Promise<string | null> {
     : null;
 }
 
-/** Indica se o cookie `id_token` está presente (verificado no servidor). */
 export async function temSessaoCookie(): Promise<boolean> {
   const resposta = await fetch("/api/auth/sessao", {
     credentials: "same-origin",
@@ -25,10 +23,6 @@ export async function temSessaoCookie(): Promise<boolean> {
   return resposta.ok;
 }
 
-/**
- * Obtém o id_token da sessão (cookie httpOnly) via GET /api/auth/sessao
- * e devolve o header Authorization no formato esperado pelo backend.
- */
 export async function getAuthorizationBearerHeaders(): Promise<
   Record<string, string>
 > {

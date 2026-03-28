@@ -37,7 +37,6 @@ export const schemaUsuarioAtualizar = z
   })
   .openapi('UsuarioAtualizar');
 
-/** Campos do Identity Toolkit usados para sessão (cookies / storage no cliente). */
 export const schemaLoginResposta = z
   .object({
     idToken: z.string().openapi({

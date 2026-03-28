@@ -27,7 +27,6 @@ export default function Perfil() {
   const [userId, setUserId] = useState<string | null>(null);
   const [sessaoResolvida, setSessaoResolvida] = useState(false);
   const [editando, setEditando] = useState(false);
-  /** Só preenchido enquanto `editando` — cópia editável dos dados da query. */
   const [rascunho, setRascunho] = useState<FormPerfil | null>(null);
   const atualizarMutation = usePutUsuarioAtualizar();
   const removerMutation = useDeleteUsuarioRemover();
