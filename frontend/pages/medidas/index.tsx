@@ -34,24 +34,6 @@ export default function Medidas() {
     return shellVazio;
   }
 
-  if (medidasQuery.isLoading) {
-    return (
-      <div className="flex min-h-screen flex-col bg-zinc-50 p-8 font-sans dark:bg-black">
-        <p className="text-zinc-600 dark:text-zinc-400">Carregando...</p>
-      </div>
-    );
-  }
-
-  if (medidasQuery.isError) {
-    return (
-      <div className="flex min-h-screen flex-col bg-zinc-50 p-8 font-sans dark:bg-black">
-        <p className="text-sm font-medium text-red-600" role="alert">
-          {medidasQuery.error.message}
-        </p>
-      </div>
-    );
-  }
-
   const medidas = medidasQuery.data ?? [];
 
   return (
@@ -90,17 +72,28 @@ export default function Medidas() {
         ]}
       />
       <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col bg-white px-16 pb-8 pt-6 dark:bg-black">
-        <div className="flex flex-col gap-4">
-          {medidas.map((medida) => (
-            <MedidaListaItem
-              key={medida.id ?? `${medida.idade}-${medida.peso}`}
-              medida={medida}
-              onClick={(medidaClicada) =>
-                router.push(`/medidas/${medidaClicada.id}`)
-              }
-            />
-          ))}
-        </div>
+        {medidasQuery.isLoading ? (
+          <p className="text-zinc-600 dark:text-zinc-400">Carregando...</p>
+        ) : medidasQuery.isError ? (
+          <p
+            className="text-sm font-medium text-red-600 dark:text-red-400"
+            role="alert"
+          >
+            {medidasQuery.error.message}
+          </p>
+        ) : (
+          <div className="flex flex-col gap-4">
+            {medidas.map((medida) => (
+              <MedidaListaItem
+                key={medida.id ?? `${medida.idade}-${medida.peso}`}
+                medida={medida}
+                onClick={(medidaClicada) =>
+                  router.push(`/medidas/${medidaClicada.id}`)
+                }
+              />
+            ))}
+          </div>
+        )}
       </main>
     </div>
   );
