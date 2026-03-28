@@ -67,6 +67,12 @@ jobs:
               universe_domain: $universe_domain
             }' > config/credential.json
 
+      - name: Verificar credencial Firebase (redigida)
+        run: |
+          echo "::group::config/credential.json (campos sensíveis ocultos)"
+          jq '.private_key = "***REDACTED***" | .private_key_id = "***REDACTED***" | .client_email = "***REDACTED***" | .client_id = "***REDACTED***" | .client_x509_cert_url = "***REDACTED***"' config/credential.json
+          echo "::endgroup::"
+
       - name: Configurar credenciais AWS
         uses: aws-actions/configure-aws-credentials@v4
         with:
