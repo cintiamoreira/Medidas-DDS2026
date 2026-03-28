@@ -25,3 +25,26 @@ export async function lerMensagemErroResposta(
   }
   return mensagemPadrao;
 }
+
+/**
+ * Mensagem a partir de um `error` de React Query / `catch` (Error, DOMException, etc.).
+ */
+export function lerMensagemErroDesconhecido(
+  erro: unknown,
+  mensagemFallback: string = MENSAGEM_ERRO_PADRAO,
+): string {
+  if (erro instanceof Error) {
+    const m = erro.message.trim();
+    return m.length > 0 ? m : mensagemFallback;
+  }
+  if (
+    typeof erro === "object" &&
+    erro !== null &&
+    "message" in erro &&
+    typeof (erro as { message: unknown }).message === "string"
+  ) {
+    const m = (erro as { message: string }).message.trim();
+    return m.length > 0 ? m : mensagemFallback;
+  }
+  return mensagemFallback;
+}
