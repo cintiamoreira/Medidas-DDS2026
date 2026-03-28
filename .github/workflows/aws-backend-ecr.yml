@@ -3,6 +3,9 @@
 name: AWS — backend (ECR)
 
 on:
+  push:
+    - branches:
+        - main
   workflow_dispatch:
 
 # Definir em Settings → Secrets and variables → Actions → Variables

@@ -3,6 +3,9 @@
 name: Vercel — frontend
 
 on:
+  push:
+    - branches:
+        - main
   workflow_dispatch:
 
 env:
