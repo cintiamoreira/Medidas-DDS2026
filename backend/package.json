@@ -9,11 +9,7 @@
     "typecheck": "tsc --noEmit",
     "dev": "nodemon src/index.js",
     "docker-build": "docker build -t backend-api .",
-    "docker-run": "docker run -p 4020:4020 --env-file .env backend-api",
-    "ecr-login": "aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 556169302885.dkr.ecr.us-east-2.amazonaws.com",
-    "docker-tag": "docker tag backend-api:latest 556169302885.dkr.ecr.us-east-2.amazonaws.com/backend-api:latest",
-    "docker-push": "docker push 556169302885.dkr.ecr.us-east-2.amazonaws.com/backend-api:latest",
-    "deploy-aws": "npm run docker-build && npm run ecr-login && npm run docker-tag && npm run docker-push"
+    "docker-run": "docker run -p 4020:4020 --env-file .env backend-api"
   },
   "keywords": [],
   "author": "",
